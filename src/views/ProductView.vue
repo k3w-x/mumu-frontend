@@ -2,26 +2,39 @@
   <div v-if="product" class="product-page">
 
     <!-- Левая часть — галерея -->
+    <!-- Левая часть — галерея -->
     <div class="product-gallery">
+
+      <!-- Десктоп: вертикальные миниатюры слева -->
       <div class="gallery-thumbs" v-if="product.images?.length > 1">
-        <div
-          v-for="(img, i) in product.images"
-          :key="img.id"
-          :class="['thumb', i === activeImg ? 'active' : '']"
-          @click="activeImg = i"
-        >
-          <img :src="`${apiUrl}/uploads/${img.filename}`" :alt="'Фото ' + (i+1)" />
+        <div v-for="(img, i) in product.images" :key="img.id" :class="['thumb', i === activeImg ? 'active' : '']"
+          @click="activeImg = i">
+          <img :src="`${apiUrl}/uploads/${img.filename}`" :alt="'Фото ' + (i + 1)" />
         </div>
       </div>
 
-      <div class="gallery-main">
-        <img
-          v-if="product.images?.length"
-          :src="`${apiUrl}/uploads/${product.images[activeImg].filename}`"
-          :alt="product.name"
-        />
+      <!-- Десктоп: главное фото -->
+      <div class="gallery-main desktop-main">
+        <img v-if="product.images?.length" :src="`${apiUrl}/uploads/${product.images[activeImg].filename}`"
+          :alt="product.name" />
         <div v-else class="gallery-empty"></div>
       </div>
+
+      <!-- Мобильный свайп -->
+      <div class="mobile-swipe" v-if="product.images?.length" @touchstart="onTouchStart" @touchend="onTouchEnd">
+        <div class="mobile-swipe-track" :style="{ transform: `translateX(-${activeImg * 100}%)` }">
+          <div v-for="(img, i) in product.images" :key="img.id" class="mobile-swipe-slide">
+            <img :src="`${apiUrl}/uploads/${img.filename}`" :alt="'Фото ' + (i + 1)" />
+          </div>
+        </div>
+
+        <!-- Точки-индикаторы -->
+        <div class="swipe-dots" v-if="product.images.length > 1">
+          <span v-for="(img, i) in product.images" :key="i" :class="['dot', i === activeImg ? 'active' : '']"
+            @click="activeImg = i"></span>
+        </div>
+      </div>
+
     </div>
 
     <!-- Правая панель — прилипает -->
@@ -43,13 +56,9 @@
       <div class="product-sizes" v-if="product.variants?.length">
         <p class="sizes-label">ВЫБЕРИТЕ РАЗМЕР</p>
         <div class="sizes-grid">
-          <button
-            v-for="v in product.variants"
-            :key="v.id"
+          <button v-for="v in product.variants" :key="v.id"
             :class="['size-btn', selectedVariant?.id === v.id ? 'active' : '', v.stock === 0 ? 'sold' : '']"
-            :disabled="v.stock === 0"
-            @click="selectedVariant = v"
-          >
+            :disabled="v.stock === 0" @click="selectedVariant = v">
             {{ v.size }}
             <span v-if="v.color !== 'default'" class="size-color">/ {{ v.color }}</span>
           </button>
@@ -57,18 +66,11 @@
       </div>
 
       <!-- Кнопка добавить -->
-      <button
-        class="add-btn"
-        :disabled="!selectedVariant"
-        @click="addToCart"
-      >
+      <button class="add-btn" :disabled="!selectedVariant" @click="addToCart">
         {{ selectedVariant ? `ДОБАВИТЬ В КОРЗИНУ ( ${formatPrice(product.price)} )` : 'ВЫБЕРИТЕ РАЗМЕР' }}
       </button>
 
-      <button
-        :class="['wish-link', wishlist.isInWishlist(product.id) ? 'wished' : '']"
-        @click="toggleWish"
-      >
+      <button :class="['wish-link', wishlist.isInWishlist(product.id) ? 'wished' : '']" @click="toggleWish">
         {{ wishlist.isInWishlist(product.id) ? '♥ В избранном' : '♡ Добавить в избранное' }}
       </button>
 
@@ -113,6 +115,23 @@ const loading = ref(true)
 const selectedVariant = ref(null)
 const activeImg = ref(0)
 const added = ref(false)
+
+// Свайп на мобилке
+const touchStartX = ref(0)
+
+const onTouchStart = (e) => {
+  touchStartX.value = e.touches[0].clientX
+}
+
+const onTouchEnd = (e) => {
+  const diff = touchStartX.value - e.changedTouches[0].clientX
+  if (Math.abs(diff) < 40) return // слишком короткий свайп
+  if (diff > 0 && activeImg.value < product.value.images.length - 1) {
+    activeImg.value++
+  } else if (diff < 0 && activeImg.value > 0) {
+    activeImg.value--
+  }
+}
 
 onMounted(async () => {
   try {
@@ -178,7 +197,9 @@ const toggleWish = () => {
   object-fit: cover;
 }
 
-.thumb.active { border-color: #000; }
+.thumb.active {
+  border-color: #000;
+}
 
 .gallery-main {
   flex: 1;
@@ -215,9 +236,16 @@ const toggleWish = () => {
   letter-spacing: 0.03em;
 }
 
-.product-path a:hover { color: #000; text-decoration: underline; }
+.product-path a:hover {
+  color: #000;
+  text-decoration: underline;
+}
 
-.product-header { display: flex; flex-direction: column; gap: 4px; }
+.product-header {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
 
 .product-brand {
   font-size: 11px;
@@ -240,7 +268,11 @@ const toggleWish = () => {
 }
 
 /* Размеры */
-.product-sizes { display: flex; flex-direction: column; gap: 10px; }
+.product-sizes {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
 
 .sizes-label {
   font-size: 10px;
@@ -264,10 +296,26 @@ const toggleWish = () => {
   letter-spacing: 0.03em;
 }
 
-.size-btn:hover:not(:disabled) { border-color: #000; }
-.size-btn.active { background: #000; border-color: #000; color: #fff; }
-.size-btn.sold { opacity: 0.35; cursor: not-allowed; text-decoration: line-through; }
-.size-color { color: #999; font-size: 11px; }
+.size-btn:hover:not(:disabled) {
+  border-color: #000;
+}
+
+.size-btn.active {
+  background: #000;
+  border-color: #000;
+  color: #fff;
+}
+
+.size-btn.sold {
+  opacity: 0.35;
+  cursor: not-allowed;
+  text-decoration: line-through;
+}
+
+.size-color {
+  color: #999;
+  font-size: 11px;
+}
 
 /* Кнопки */
 .add-btn {
@@ -282,8 +330,14 @@ const toggleWish = () => {
   transition: opacity 0.2s;
 }
 
-.add-btn:hover:not(:disabled) { opacity: 0.75; }
-.add-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.add-btn:hover:not(:disabled) {
+  opacity: 0.75;
+}
+
+.add-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
 
 .wish-link {
   background: none;
@@ -296,10 +350,18 @@ const toggleWish = () => {
   transition: color 0.15s;
 }
 
-.wish-link:hover { color: #000; }
-.wish-link.wished { color: #000; }
+.wish-link:hover {
+  color: #000;
+}
 
-.added-msg { font-size: 12px; color: #27ae60; }
+.wish-link.wished {
+  color: #000;
+}
+
+.added-msg {
+  font-size: 12px;
+  color: #27ae60;
+}
 
 /* Детали */
 .product-details {
@@ -310,7 +372,9 @@ const toggleWish = () => {
   gap: 0;
 }
 
-.detail-block { border-bottom: 1px solid #e8e8e8; }
+.detail-block {
+  border-bottom: 1px solid #e8e8e8;
+}
 
 .detail-summary {
   padding: 12px 0;
@@ -323,9 +387,19 @@ const toggleWish = () => {
   align-items: center;
 }
 
-.detail-summary::-webkit-details-marker { display: none; }
-.detail-summary::after { content: '+'; font-size: 16px; color: #999; }
-details[open] .detail-summary::after { content: '−'; }
+.detail-summary::-webkit-details-marker {
+  display: none;
+}
+
+.detail-summary::after {
+  content: '+';
+  font-size: 16px;
+  color: #999;
+}
+
+details[open] .detail-summary::after {
+  content: '−';
+}
 
 .detail-text {
   font-size: 12px;
@@ -342,7 +416,54 @@ details[open] .detail-summary::after { content: '−'; }
 }
 
 
+/* Мобильный свайп */
+.mobile-swipe {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  background: #f2f2f0;
+}
 
+.mobile-swipe-track {
+  display: flex;
+  transition: transform 0.35s ease;
+  will-change: transform;
+}
+
+.mobile-swipe-slide {
+  min-width: 100%;
+  aspect-ratio: 3/4;
+}
+
+.mobile-swipe-slide img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.swipe-dots {
+  position: absolute;
+  bottom: 12px;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+}
+
+.dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.5);
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.dot.active {
+  background: #fff;
+}
 
 @media (max-width: 768px) {
   .product-page {
@@ -361,6 +482,19 @@ details[open] .detail-summary::after { content: '−'; }
     max-height: none;
     overflow: visible;
   }
+
+  /* Прячем десктопную галерею на мобилке */
+  .gallery-thumbs,
+  .desktop-main {
+    display: none;
+  }
+}
+
+@media (min-width: 769px) {
+  /* Прячем мобильный свайп на десктопе */
+  .mobile-swipe {
+    display: none;
+  }
 }
 
 @media (max-width: 480px) {
@@ -378,9 +512,4 @@ details[open] .detail-summary::after { content: '−'; }
     flex-shrink: 0;
   }
 }
-
-
-
-
-
 </style>
