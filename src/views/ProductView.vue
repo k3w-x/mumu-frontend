@@ -368,11 +368,13 @@ details[open] .detail-summary::after { content: '−'; }
     flex-direction: row;
     width: 100%;
     overflow-x: auto;
+    gap: 6px;
+    padding-bottom: 4px;
   }
 
   .thumb {
-    width: 50px;
-    height: 62px;
+    width: 80px;
+    height: 100px;
     flex-shrink: 0;
   }
 }
