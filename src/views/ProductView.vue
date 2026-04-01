@@ -2,12 +2,12 @@
   <div v-if="product" class="product-page">
 
     <!-- Левая часть — галерея -->
-    <!-- Левая часть — галерея -->
     <div class="product-gallery">
 
       <!-- Десктоп: вертикальные миниатюры слева -->
       <div class="gallery-thumbs" v-if="product.images?.length > 1">
-        <div v-for="(img, i) in product.images" :key="img.id" :class="['thumb', i === activeImg ? 'active' : '']"
+        <div v-for="(img, i) in product.images" :key="img.id"
+          :class="['thumb', i === activeImg ? 'active' : '']"
           @click="activeImg = i">
           <img :src="`${apiUrl}/uploads/${img.filename}`" :alt="'Фото ' + (i + 1)" />
         </div>
@@ -15,29 +15,36 @@
 
       <!-- Десктоп: главное фото -->
       <div class="gallery-main desktop-main">
-        <img v-if="product.images?.length" :src="`${apiUrl}/uploads/${product.images[activeImg].filename}`"
+        <img v-if="product.images?.length"
+          :src="`${apiUrl}/uploads/${product.images[activeImg].filename}`"
           :alt="product.name" />
         <div v-else class="gallery-empty"></div>
       </div>
 
       <!-- Мобильный свайп -->
-      <div class="mobile-swipe" v-if="product.images?.length" @touchstart="onTouchStart" @touchend="onTouchEnd">
-        <div class="mobile-swipe-track" :style="{ transform: `translateX(-${activeImg * 100}%)` }">
+      <div class="mobile-swipe" v-if="product.images?.length"
+        @touchstart="onTouchStart" @touchend="onTouchEnd">
+        <div class="mobile-swipe-track"
+          :style="{ transform: `translateX(-${activeImg * 100}%)` }">
           <div v-for="(img, i) in product.images" :key="img.id" class="mobile-swipe-slide">
             <img :src="`${apiUrl}/uploads/${img.filename}`" :alt="'Фото ' + (i + 1)" />
           </div>
         </div>
-        <!-- Мобильные миниатюры под свайпом -->
-        <div class="mobile-thumbs" v-if="product.images?.length > 1">
-          <div v-for="(img, i) in product.images" :key="img.id"
-            :class="['mobile-thumb', i === activeImg ? 'active' : '']" @click="activeImg = i">
-            <img :src="`${apiUrl}/uploads/${img.filename}`" :alt="'Фото ' + (i + 1)" />
-          </div>
-        </div>
+
         <!-- Точки-индикаторы -->
         <div class="swipe-dots" v-if="product.images.length > 1">
-          <span v-for="(img, i) in product.images" :key="i" :class="['dot', i === activeImg ? 'active' : '']"
+          <span v-for="(img, i) in product.images" :key="i"
+            :class="['dot', i === activeImg ? 'active' : '']"
             @click="activeImg = i"></span>
+        </div>
+      </div>
+
+      <!-- Мобильные миниатюры — СНАРУЖИ свайпа -->
+      <div class="mobile-thumbs" v-if="product.images?.length > 1">
+        <div v-for="(img, i) in product.images" :key="img.id"
+          :class="['mobile-thumb', i === activeImg ? 'active' : '']"
+          @click="activeImg = i">
+          <img :src="`${apiUrl}/uploads/${img.filename}`" :alt="'Фото ' + (i + 1)" />
         </div>
       </div>
 
