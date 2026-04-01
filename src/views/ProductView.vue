@@ -485,6 +485,7 @@ details[open] .detail-summary::after {
 
   .product-gallery {
     padding-right: 0;
+    flex-direction: column;
   }
 
   .product-info {
@@ -496,10 +497,46 @@ details[open] .detail-summary::after {
     overflow: visible;
   }
 
-  /* Прячем десктопную галерею на мобилке */
   .gallery-thumbs,
   .desktop-main {
     display: none;
+  }
+
+  .mobile-thumbs {
+    display: none;
+    gap: 6px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 8px 0 4px;
+    width: 100%;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .mobile-thumbs::-webkit-scrollbar {
+    display: none;
+  }
+
+  .mobile-thumb {
+    width: 72px;
+    min-width: 72px;
+    height: 90px;
+    flex-shrink: 0;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: border-color 0.2s;
+    overflow: hidden;
+  }
+
+  .mobile-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .mobile-thumb.active {
+    border-color: #000;
   }
 }
 
