@@ -47,6 +47,8 @@ body {
   background: #fff;
   color: #000;
   -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+
 }
 
 a { color: inherit; text-decoration: none; }

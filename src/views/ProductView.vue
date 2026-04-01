@@ -530,11 +530,21 @@ details[open] .detail-summary::after {
     display: flex;
     gap: 6px;
     overflow-x: auto;
+    overflow-y: hidden;
     padding: 8px 0 4px;
+    width: 100%;
+    max-width: 100%;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .mobile-thumbs::-webkit-scrollbar {
+    display: none;
   }
 
   .mobile-thumb {
     width: 72px;
+    min-width: 72px;
     height: 90px;
     flex-shrink: 0;
     cursor: pointer;
