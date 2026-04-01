@@ -27,7 +27,13 @@
             <img :src="`${apiUrl}/uploads/${img.filename}`" :alt="'Фото ' + (i + 1)" />
           </div>
         </div>
-
+        <!-- Мобильные миниатюры под свайпом -->
+        <div class="mobile-thumbs" v-if="product.images?.length > 1">
+          <div v-for="(img, i) in product.images" :key="img.id"
+            :class="['mobile-thumb', i === activeImg ? 'active' : '']" @click="activeImg = i">
+            <img :src="`${apiUrl}/uploads/${img.filename}`" :alt="'Фото ' + (i + 1)" />
+          </div>
+        </div>
         <!-- Точки-индикаторы -->
         <div class="swipe-dots" v-if="product.images.length > 1">
           <span v-for="(img, i) in product.images" :key="i" :class="['dot', i === activeImg ? 'active' : '']"
@@ -456,7 +462,7 @@ details[open] .detail-summary::after {
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: rgba(255,255,255,0.5);
+  background: rgba(255, 255, 255, 0.5);
   cursor: pointer;
   transition: background 0.2s;
 }
@@ -491,6 +497,7 @@ details[open] .detail-summary::after {
 }
 
 @media (min-width: 769px) {
+
   /* Прячем мобильный свайп на десктопе */
   .mobile-swipe {
     display: none;
@@ -510,6 +517,41 @@ details[open] .detail-summary::after {
     width: 80px;
     height: 100px;
     flex-shrink: 0;
+  }
+}
+
+/* Мобильные миниатюры */
+.mobile-thumbs {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .mobile-thumbs {
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    padding: 8px 0 4px;
+  }
+
+  .mobile-thumb {
+    width: 72px;
+    height: 90px;
+    flex-shrink: 0;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: border-color 0.2s;
+    overflow: hidden;
+  }
+
+  .mobile-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .mobile-thumb.active {
+    border-color: #000;
   }
 }
 </style>
