@@ -439,12 +439,13 @@ details[open] .detail-summary::after {
 
 .mobile-swipe-track {
   display: flex;
+  width: 100%;
   transition: transform 0.35s ease;
   will-change: transform;
 }
 
 .mobile-swipe-slide {
-  min-width: 100%;
+  flex: 0 0 100%;
   aspect-ratio: 3/4;
 }
 
@@ -455,6 +456,7 @@ details[open] .detail-summary::after {
   display: block;
 }
 
+/* Точки */
 .swipe-dots {
   position: absolute;
   bottom: 12px;
@@ -478,6 +480,8 @@ details[open] .detail-summary::after {
   background: #fff;
 }
 
+/* ===== MOBILE ===== */
+
 .mobile-thumbs {
   display: none;
 }
@@ -490,6 +494,8 @@ details[open] .detail-summary::after {
   .product-gallery {
     padding-right: 0;
     flex-direction: column;
+    width: 100%;
+    overflow: hidden;
   }
 
   .product-info {
@@ -506,30 +512,37 @@ details[open] .detail-summary::after {
     display: none;
   }
 
+  /* МИНИАТЮРЫ */
   .mobile-thumbs {
     display: flex;
     gap: 6px;
     overflow-x: auto;
-    overflow-y: hidden;
     padding: 8px 0 4px;
     width: 100%;
+    box-sizing: border-box;
+
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
+
+    /* плавный UX */
+    scroll-snap-type: x mandatory;
   }
 
   .mobile-thumbs::-webkit-scrollbar {
-    display: flex;
+    display: none;
   }
 
   .mobile-thumb {
-    width: 72px;
-    min-width: 72px;
-    height: 90px;
-    flex-shrink: 0;
+    flex: 0 0 auto;
+    width: 80px;
+    height: 100px;
+
     cursor: pointer;
     border: 2px solid transparent;
     transition: border-color 0.2s;
     overflow: hidden;
+
+    scroll-snap-align: start;
   }
 
   .mobile-thumb img {
@@ -544,69 +557,18 @@ details[open] .detail-summary::after {
   }
 }
 
+/* Десктоп */
 @media (min-width: 769px) {
-
-  /* Прячем мобильный свайп на десктопе */
   .mobile-swipe {
     display: none;
   }
 }
 
+/* Очень маленькие экраны */
 @media (max-width: 480px) {
-  .gallery-thumbs {
-    flex-direction: row;
-    width: 100%;
-    overflow-x: auto;
-    gap: 6px;
-    padding-bottom: 4px;
-  }
-
   .thumb {
     width: 80px;
     height: 100px;
     flex-shrink: 0;
   }
 }
-
-/* Мобильные миниатюры */
-
-
-@media (max-width: 768px) {
-  .mobile-thumbs {
-    gap: 6px;
-    overflow-x: auto;
-    overflow-y: hidden;
-    padding: 8px 0 4px;
-    width: 100%;
-    max-width: 100%;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-  }
-
-  .mobile-thumbs::-webkit-scrollbar {
-    display: none;
-  }
-
-  .mobile-thumb {
-    width: 72px;
-    min-width: 72px;
-    height: 90px;
-    flex-shrink: 0;
-    cursor: pointer;
-    border: 2px solid transparent;
-    transition: border-color 0.2s;
-    overflow: hidden;
-  }
-
-  .mobile-thumb img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
-  }
-
-  .mobile-thumb.active {
-    border-color: #000;
-  }
-}
-</style>
