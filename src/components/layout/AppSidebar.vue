@@ -330,10 +330,15 @@ const handleLogout = () => {
     transform: translateY(100%);
     z-index: 100;
     overflow-y: auto;
+    visibility: hidden;
+    pointer-events: none;
+    transition: transform 0.3s ease, visibility 0.3s ease;
   }
 
   .sidebar--open {
     transform: translateY(0);
+    visibility: visible;
+    pointer-events: auto;
   }
 
   .sidebar-close {
