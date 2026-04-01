@@ -478,6 +478,10 @@ details[open] .detail-summary::after {
   background: #fff;
 }
 
+.mobile-thumbs {
+  display: none;
+}
+
 @media (max-width: 768px) {
   .product-page {
     grid-template-columns: 1fr;
@@ -503,7 +507,7 @@ details[open] .detail-summary::after {
   }
 
   .mobile-thumbs {
-    display: none;
+    display: flex;
     gap: 6px;
     overflow-x: auto;
     overflow-y: hidden;
@@ -514,7 +518,7 @@ details[open] .detail-summary::after {
   }
 
   .mobile-thumbs::-webkit-scrollbar {
-    display: none;
+    display: flex;
   }
 
   .mobile-thumb {
@@ -565,13 +569,10 @@ details[open] .detail-summary::after {
 }
 
 /* Мобильные миниатюры */
-.mobile-thumbs {
-  display: none;
-}
+
 
 @media (max-width: 768px) {
   .mobile-thumbs {
-    display: flex;
     gap: 6px;
     overflow-x: auto;
     overflow-y: hidden;
