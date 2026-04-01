@@ -572,3 +572,5 @@ details[open] .detail-summary::after {
     flex-shrink: 0;
   }
 }
+
+</style>
