@@ -13,6 +13,8 @@
           <tr>
             <th>ID</th>
             <th>Название</th>
+            <th>Уровень</th>
+            <th>Пол</th>
             <th>Родитель</th>
             <th>Действия</th>
           </tr>
@@ -20,7 +22,16 @@
         <tbody>
           <tr v-for="cat in categories" :key="cat.id">
             <td class="td-id">#{{ cat.id }}</td>
-            <td class="td-name">{{ cat.name }}</td>
+            <td class="td-name" :style="{ paddingLeft: `${(cat.level - 1) * 20 + 16}px` }">
+              <span class="level-dot" v-if="cat.level > 1">└</span>
+              {{ cat.name }}
+            </td>
+            <td><span class="badge">Ур. {{ cat.level }}</span></td>
+            <td>
+              <span v-if="cat.gender === 'male'" class="badge badge-blue">Для него</span>
+              <span v-else-if="cat.gender === 'female'" class="badge badge-pink">Для неё</span>
+              <span v-else class="badge badge-gray">—</span>
+            </td>
             <td>{{ parentName(cat.parent_id) }}</td>
             <td class="td-actions">
               <button class="act-btn edit" @click="openEdit(cat)">✏️</button>
@@ -37,16 +48,27 @@
 
         <BaseInput v-model="form.name" label="Название" placeholder="Название категории" />
 
+        <BaseInput v-model="form.slug" label="Slug (латиницей)" placeholder="например: men-tshirts" />
+
+        <div class="field">
+          <label class="field-label">Пол</label>
+          <select v-model="form.gender" class="field-select">
+            <option value="">— не указан —</option>
+            <option value="male">Для него</option>
+            <option value="female">Для неё</option>
+          </select>
+        </div>
+
         <div class="field">
           <label class="field-label">Родительская категория</label>
           <select v-model="form.parent_id" class="field-select">
-            <option value="">— нет —</option>
+            <option value="">— нет (корневая) —</option>
             <option
               v-for="cat in categories.filter(c => !modal.isEdit || c.id !== modal.editId)"
               :key="cat.id"
               :value="cat.id"
             >
-              {{ cat.name }}
+              {{ '—'.repeat(cat.level - 1) }} {{ cat.name }}
             </option>
           </select>
         </div>
@@ -74,7 +96,7 @@ import LoadingSpinner from '@/components/ui/LoadingSpinner.vue'
 
 const categories = ref([])
 const loading = ref(true)
-const form = ref({ name: '', parent_id: '' })
+const form = ref({ name: '', slug: '', parent_id: '', gender: '' })
 const modal = ref({ show: false, isEdit: false, editId: null, loading: false, error: '' })
 
 const parentName = (id) => {
@@ -93,12 +115,17 @@ const load = async () => {
 onMounted(load)
 
 const openCreate = () => {
-  form.value = { name: '', parent_id: '' }
+  form.value = { name: '', slug: '', parent_id: '', gender: '' }
   modal.value = { show: true, isEdit: false, editId: null, loading: false, error: '' }
 }
 
 const openEdit = (cat) => {
-  form.value = { name: cat.name, parent_id: cat.parent_id || '' }
+  form.value = {
+    name: cat.name,
+    slug: cat.slug || '',
+    parent_id: cat.parent_id || '',
+    gender: cat.gender || ''
+  }
   modal.value = { show: true, isEdit: true, editId: cat.id, loading: false, error: '' }
 }
 
@@ -108,7 +135,9 @@ const submit = async () => {
   try {
     const payload = {
       name: form.value.name,
-      parent_id: form.value.parent_id || null
+      slug: form.value.slug || null,
+      parent_id: form.value.parent_id || null,
+      gender: form.value.gender || null
     }
     if (modal.value.isEdit) {
       await api.put(`/categories/${modal.value.editId}`, payload)
@@ -177,6 +206,19 @@ const remove = async (id) => {
 }
 .act-btn:hover { background: #f4f4f2; }
 .act-btn.del:hover { border-color: #c0392b; background: #fff0ee; }
+.badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+  background: #f0f0ee;
+  color: #555;
+}
+.badge-blue { background: #e8f0fe; color: #1a73e8; }
+.badge-pink { background: #fce4ec; color: #e91e63; }
+.badge-gray { background: #f0f0ee; color: #999; }
+.level-dot { color: #999; margin-right: 4px; }
 .modal-overlay {
   position: fixed;
   inset: 0;
