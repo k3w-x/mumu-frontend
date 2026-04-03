@@ -13,6 +13,7 @@
           <tr>
             <th>ID</th>
             <th>Название</th>
+            <th>Бренд</th>
             <th>Категория</th>
             <th>Цена</th>
             <th>Вариантов</th>
@@ -24,6 +25,13 @@
           <tr v-for="product in products" :key="product.id">
             <td class="td-id">#{{ product.id }}</td>
             <td class="td-name">{{ product.name }}</td>
+            <td>
+              <div class="brand-cell" v-if="product.brand_name">
+                <img v-if="product.brand_logo" :src="product.brand_logo" class="brand-logo-sm" />
+                {{ product.brand_name }}
+              </div>
+              <span v-else class="no-val">—</span>
+            </td>
             <td>{{ product.category || '—' }}</td>
             <td>{{ formatPrice(product.price) }}</td>
             <td>{{ product.variants?.length || 0 }}</td>
@@ -45,37 +53,36 @@
         <h2 class="modal-title">{{ modal.isEdit ? 'Редактировать товар' : 'Новый товар' }}</h2>
 
         <BaseInput v-model="form.name" label="Название" placeholder="Название товара" />
-        <BaseInput v-model="form.price" label="Цена (₽)" placeholder="2500" type="number" />
-        <BaseInput v-model="form.brand" label="Бренд" placeholder="Nike, Zara..." />
+        <BaseInput v-model="form.price" label="Цена (UZS)" placeholder="2500" type="number" />
+
+        <div class="field">
+          <label class="field-label">Бренд</label>
+          <select v-model="form.brand_id" class="field-select">
+            <option value="">— без бренда —</option>
+            <option v-for="brand in brands" :key="brand.id" :value="brand.id">
+              {{ brand.name }}
+            </option>
+          </select>
+        </div>
 
         <div class="field">
           <label class="field-label">Категория</label>
           <select v-model="form.category_id" class="field-select">
             <option value="">— выберите —</option>
             <option v-for="cat in categories" :key="cat.id" :value="cat.id">
-              {{ cat.name }}
+              {{ '—'.repeat(cat.level - 1) }} {{ cat.name }}
             </option>
           </select>
         </div>
 
         <div class="field">
           <label class="field-label">Описание</label>
-          <textarea
-            v-model="form.description"
-            class="field-textarea"
-            placeholder="Описание товара..."
-            rows="3"
-          ></textarea>
+          <textarea v-model="form.description" class="field-textarea" placeholder="Описание товара..." rows="3" />
         </div>
 
         <div class="field">
           <label class="field-label">Состав и материал</label>
-          <textarea
-            v-model="form.material"
-            class="field-textarea"
-            placeholder="100% хлопок, машинная стирка..."
-            rows="2"
-          ></textarea>
+          <textarea v-model="form.material" class="field-textarea" placeholder="100% хлопок..." rows="2" />
         </div>
 
         <p v-if="modal.error" class="error">{{ modal.error }}</p>
@@ -114,9 +121,7 @@
 
         <div class="modal-actions">
           <BaseButton variant="outline" @click="imgModal.show = false">Закрыть</BaseButton>
-          <BaseButton variant="primary" :loading="imgModal.loading" @click="uploadimgs">
-            Загрузить
-          </BaseButton>
+          <BaseButton variant="primary" :loading="imgModal.loading" @click="uploadimgs">Загрузить</BaseButton>
         </div>
       </div>
     </div>
@@ -128,9 +133,7 @@
 
         <table class="table" v-if="varModal.product?.variants?.length">
           <thead>
-            <tr>
-              <th>Размер</th><th>Цвет</th><th>Остаток</th><th></th>
-            </tr>
+            <tr><th>Размер</th><th>Цвет</th><th>Остаток</th><th></th></tr>
           </thead>
           <tbody>
             <tr v-for="v in varModal.product.variants" :key="v.id">
@@ -153,9 +156,7 @@
             <BaseInput v-model="varForm.size" placeholder="S, M, L..." />
             <BaseInput v-model="varForm.color" placeholder="white, black..." />
             <BaseInput v-model="varForm.stock" placeholder="Остаток" type="number" />
-            <BaseButton variant="primary" :loading="varModal.loading" @click="addVariant">
-              + Добавить
-            </BaseButton>
+            <BaseButton variant="primary" :loading="varModal.loading" @click="addVariant">+ Добавить</BaseButton>
           </div>
           <p v-if="varModal.error" class="error">{{ varModal.error }}</p>
         </div>
@@ -172,6 +173,7 @@
 import { ref, onMounted } from 'vue'
 import { getProducts } from '@/services/products'
 import { getCategories } from '@/services/categories'
+import { getBrands } from '@/services/brands'
 import { uploadImages } from '@/services/images'
 import { createVariant, updateVariant, deleteVariant } from '@/services/variants'
 import api from '@/services/api'
@@ -182,9 +184,10 @@ import LoadingSpinner from '@/components/ui/LoadingSpinner.vue'
 const apiUrl = import.meta.env.VITE_API_URL
 const products = ref([])
 const categories = ref([])
+const brands = ref([])
 const loading = ref(true)
 
-const form = ref({ name: '', price: '', category_id: '', description: '', material: '', brand: '' })
+const form = ref({ name: '', price: '', category_id: '', description: '', material: '', brand_id: '' })
 const modal = ref({ show: false, isEdit: false, editId: null, loading: false, error: '' })
 const imgModal = ref({ show: false, product: null, files: [], loading: false, error: '', success: false })
 const varModal = ref({ show: false, product: null, loading: false, error: '' })
@@ -194,16 +197,17 @@ const formatPrice = (p) => Number(p).toLocaleString('ru-RU') + ' UZS'
 
 const load = async () => {
   loading.value = true
-  const [p, c] = await Promise.all([getProducts(), getCategories()])
+  const [p, c, b] = await Promise.all([getProducts(), getCategories(), getBrands()])
   products.value = p.data
   categories.value = c.data
+  brands.value = b.data
   loading.value = false
 }
 
 onMounted(load)
 
 const openCreate = () => {
-  form.value = { name: '', price: '', category_id: '', description: '', material: '', brand: '' }
+  form.value = { name: '', price: '', category_id: '', description: '', material: '', brand_id: '' }
   modal.value = { show: true, isEdit: false, editId: null, loading: false, error: '' }
 }
 
@@ -211,10 +215,10 @@ const openEdit = (product) => {
   form.value = {
     name: product.name,
     price: product.price,
-    category_id: '',
+    category_id: product.category_id || '',
     description: product.description || '',
     material: product.material || '',
-    brand: product.brand || ''
+    brand_id: product.brand_id || ''
   }
   modal.value = { show: true, isEdit: true, editId: product.id, loading: false, error: '' }
 }
@@ -223,23 +227,18 @@ const submitProduct = async () => {
   modal.value.error = ''
   modal.value.loading = true
   try {
+    const payload = {
+      name: form.value.name,
+      price: form.value.price,
+      category_id: form.value.category_id,
+      description: form.value.description,
+      material: form.value.material,
+      brand_id: form.value.brand_id || null
+    }
     if (modal.value.isEdit) {
-      await api.put(`/products/${modal.value.editId}`, {
-        name: form.value.name,
-        price: form.value.price,
-        description: form.value.description,
-        material: form.value.material,
-        brand: form.value.brand
-      })
+      await api.put(`/products/${modal.value.editId}`, payload)
     } else {
-      await api.post('/products', {
-        name: form.value.name,
-        price: form.value.price,
-        category_id: form.value.category_id,
-        description: form.value.description,
-        material: form.value.material,
-        brand: form.value.brand
-      })
+      await api.post('/products', payload)
     }
     modal.value.show = false
     await load()
@@ -323,12 +322,15 @@ const removeVariant = async (id) => {
   border-bottom: 1px solid #e8e8e4; font-weight: 600; color: #555;
   font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;
 }
-.table td { padding: 12px 16px; border-bottom: 1px solid #f0f0ee; }
+.table td { padding: 12px 16px; border-bottom: 1px solid #f0f0ee; vertical-align: middle; }
 .table tbody tr:last-child td { border-bottom: none; }
 .table tbody tr:hover { background: #fafaf8; }
 .td-id { color: #999; font-size: 12px; }
 .td-name { font-weight: 500; }
 .td-actions { display: flex; gap: 6px; }
+.no-val { color: #ccc; font-size: 13px; }
+.brand-cell { display: flex; align-items: center; gap: 6px; font-size: 13px; }
+.brand-logo-sm { width: 24px; height: 24px; object-fit: contain; }
 .act-btn {
   background: none; border: 1px solid #e8e8e4; border-radius: 6px;
   padding: 4px 8px; font-size: 14px; cursor: pointer; transition: all 0.2s;
@@ -356,8 +358,7 @@ const removeVariant = async (id) => {
 .field-select:focus { border-color: #1a1a1a; }
 .field-textarea {
   width: 100%; padding: 10px 14px; border: 1px solid #ddd;
-  border-radius: 8px; font-size: 14px; outline: none; resize: vertical;
-  font-family: inherit; line-height: 1.5;
+  border-radius: 8px; font-size: 14px; outline: none; resize: vertical; font-family: inherit;
 }
 .field-textarea:focus { border-color: #1a1a1a; }
 .img-preview { display: flex; flex-wrap: wrap; gap: 8px; }
