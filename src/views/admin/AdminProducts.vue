@@ -239,15 +239,23 @@ const load = async () => {
 onMounted(load)
 
 const downloadTemplate = () => {
-  const headers = ['Название', 'Цена', 'ID категории', 'ID бренда', 'Описание', 'Материал', 'Цвет HEX', 'Группа цветов']
-  const example = ['Футболка белая', 150000, 3, 1, 'Описание товара', '100% хлопок', '#ffffff', 1]
-  const ws_data = [headers, example]
-  const csvContent = ws_data.map(row => row.join(',')).join('\n')
-  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+  const rows = [
+    ['Название', 'Цена', 'ID категории', 'ID бренда', 'Описание', 'Материал', 'Цвет HEX', 'Группа цветов'],
+    ['Футболка белая', 150000, 3, 1, 'Описание товара', '100% хлопок', '#ffffff', 1],
+    ['Футболка чёрная', 150000, 3, 1, 'Описание товара', '100% хлопок', '#000000', 1],
+  ]
+
+  const colWidths = [30, 12, 15, 12, 30, 20, 12, 15]
+  let csv = '\uFEFF' // BOM для корректного отображения кириллицы в Excel
+  rows.forEach(row => {
+    csv += row.map(cell => `"${cell}"`).join(';') + '\n'
+  })
+
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
   a.href = url
-  a.download = 'template_products.csv'
+  a.download = 'шаблон_товары.csv'
   a.click()
   URL.revokeObjectURL(url)
 }
