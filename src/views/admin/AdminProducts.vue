@@ -85,7 +85,21 @@
           <label class="field-label">Состав и материал</label>
           <textarea v-model="form.material" class="field-textarea" placeholder="100% хлопок..." rows="2" />
         </div>
+        <div class="field">
+          <label class="field-label">Цвет товара (HEX)</label>
+          <div class="color-row">
+            <input type="color" v-model="form.color_hex" class="color-picker" />
+            <input type="text" v-model="form.color_hex" class="field-input" placeholder="#ffffff" />
+          </div>
+        </div>
 
+        <div class="field">
+          <label class="field-label">Группа цветов (ID)</label>
+          <input type="number" v-model="form.color_group_id" class="field-input"
+            placeholder="Одинаковый ID = одна модель разных цветов" />
+          <span class="field-hint">Укажи одинаковый номер для товаров которые являются одной моделью разных
+            цветов</span>
+        </div>
         <p v-if="modal.error" class="error">{{ modal.error }}</p>
 
         <div class="modal-actions">
@@ -209,8 +223,9 @@ const load = async () => {
 onMounted(load)
 
 const openCreate = () => {
-  form.value = { name: '', price: '', category_id: '', description: '', material: '', brand_id: '' }
+  form.value = { name: '', price: '', category_id: '', description: '', material: '', brand_id: '', color_group_id: '', color_hex: '' }
   modal.value = { show: true, isEdit: false, editId: null, loading: false, error: '' }
+
 }
 
 const openEdit = (product) => {
@@ -220,7 +235,9 @@ const openEdit = (product) => {
     category_id: product.category_id || '',
     description: product.description || '',
     material: product.material || '',
-    brand_id: product.brand_id || ''
+    brand_id: product.brand_id || '',
+    color_hex: product.color_hex || '',
+    color_group_id: product.color_group_id || ''
   }
   modal.value = { show: true, isEdit: true, editId: product.id, loading: false, error: '' }
 }
@@ -235,7 +252,9 @@ const submitProduct = async () => {
       category_id: form.value.category_id,
       description: form.value.description,
       material: form.value.material,
-      brand_id: form.value.brand_id || null
+      brand_id: form.value.brand_id || null,
+      color_hex: form.value.color_hex || null,
+      color_group_id: form.value.color_group_id || null
     }
     if (modal.value.isEdit) {
       await api.put(`/products/${modal.value.editId}`, payload)
@@ -563,4 +582,15 @@ const removeVariant = async (id) => {
   color: green;
   font-size: 14px;
 }
+
+.color-row { display: flex; gap: 10px; align-items: center; }
+.color-picker { width: 48px; height: 40px; border: 1px solid #ddd; border-radius: 8px; cursor: pointer; padding: 2px; }
+.field-input {
+  flex: 1; padding: 10px 14px; border: 1px solid #ddd;
+  border-radius: 8px; font-size: 15px; outline: none;
+}
+.field-input:focus { border-color: #1a1a1a; }
+.field-hint { font-size: 12px; color: #999; margin-top: 4px; }
+
+
 </style>
