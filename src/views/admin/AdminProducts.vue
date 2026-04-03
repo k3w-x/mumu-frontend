@@ -2,7 +2,22 @@
   <div>
     <div class="page-header">
       <h1 class="page-title">Товары</h1>
-      <BaseButton variant="primary" @click="openCreate">+ Добавить товар</BaseButton>
+      <div class="header-actions">
+        <BaseButton variant="outline" @click="downloadTemplate">⬇ Шаблон Excel</BaseButton>
+        <label class="import-btn">
+          📥 Импорт Excel
+          <input type="file" accept=".xlsx,.xls" @change="importExcel" hidden />
+        </label>
+        <BaseButton variant="primary" @click="openCreate">+ Добавить товар</BaseButton>
+      </div>
+    </div>
+
+    <div v-if="importResult" class="import-result" :class="importResult.errors?.length ? 'has-errors' : 'success'">
+      <p>✅ {{ importResult.message }}</p>
+      <ul v-if="importResult.errors?.length">
+        <li v-for="e in importResult.errors" :key="e">⚠️ {{ e }}</li>
+      </ul>
+      <button class="close-result" @click="importResult = null">✕</button>
     </div>
 
     <LoadingSpinner v-if="loading" />
@@ -202,6 +217,7 @@ const products = ref([])
 const categories = ref([])
 const brands = ref([])
 const loading = ref(true)
+const importResult = ref(null)
 
 const form = ref({ name: '', price: '', category_id: '', description: '', material: '', brand_id: '' })
 const modal = ref({ show: false, isEdit: false, editId: null, loading: false, error: '' })
@@ -221,6 +237,37 @@ const load = async () => {
 }
 
 onMounted(load)
+
+const downloadTemplate = () => {
+  const headers = ['Название', 'Цена', 'ID категории', 'ID бренда', 'Описание', 'Материал', 'Цвет HEX', 'Группа цветов']
+  const example = ['Футболка белая', 150000, 3, 1, 'Описание товара', '100% хлопок', '#ffffff', 1]
+  const ws_data = [headers, example]
+  const csvContent = ws_data.map(row => row.join(',')).join('\n')
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = 'template_products.csv'
+  a.click()
+  URL.revokeObjectURL(url)
+}
+
+const importExcel = async (e) => {
+  const file = e.target.files[0]
+  if (!file) return
+  const formData = new FormData()
+  formData.append('file', file)
+  try {
+    const res = await api.post('/import/products', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    })
+    importResult.value = res.data
+    await load()
+  } catch (err) {
+    importResult.value = { message: 'Ошибка импорта', errors: [err.response?.data?.error || 'Неизвестная ошибка'] }
+  }
+  e.target.value = ''
+}
 
 const openCreate = () => {
   form.value = { name: '', price: '', category_id: '', description: '', material: '', brand_id: '', color_group_id: '', color_hex: '' }
@@ -583,14 +630,59 @@ const removeVariant = async (id) => {
   font-size: 14px;
 }
 
-.color-row { display: flex; gap: 10px; align-items: center; }
-.color-picker { width: 48px; height: 40px; border: 1px solid #ddd; border-radius: 8px; cursor: pointer; padding: 2px; }
-.field-input {
-  flex: 1; padding: 10px 14px; border: 1px solid #ddd;
-  border-radius: 8px; font-size: 15px; outline: none;
+.color-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
 }
-.field-input:focus { border-color: #1a1a1a; }
-.field-hint { font-size: 12px; color: #999; margin-top: 4px; }
+
+.color-picker {
+  width: 48px;
+  height: 40px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  cursor: pointer;
+  padding: 2px;
+}
+
+.field-input {
+  flex: 1;
+  padding: 10px 14px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 15px;
+  outline: none;
+}
+
+.field-input:focus {
+  border-color: #1a1a1a;
+}
+
+.field-hint {
+  font-size: 12px;
+  color: #999;
+  margin-top: 4px;
+}
 
 
+.header-actions { display: flex; gap: 10px; align-items: center; }
+.import-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 8px 16px; background: #fff; border: 1px solid #ddd;
+  border-radius: 8px; font-size: 14px; cursor: pointer;
+  transition: all 0.2s; font-weight: 500;
+}
+.import-btn:hover { background: #f4f4f2; border-color: #999; }
+.import-result {
+  margin-bottom: 16px; padding: 16px; border-radius: 12px;
+  position: relative; font-size: 14px;
+}
+.import-result.success { background: #f0fdf4; border: 1px solid #86efac; }
+.import-result.has-errors { background: #fef9ec; border: 1px solid #fcd34d; }
+.import-result ul { margin-top: 8px; padding-left: 16px; }
+.import-result li { margin-bottom: 4px; color: #92400e; }
+.close-result {
+  position: absolute; top: 12px; right: 12px;
+  background: none; border: none; cursor: pointer; font-size: 16px; color: #999;
+}
 </style>
