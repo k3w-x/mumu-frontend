@@ -70,7 +70,8 @@
           <select v-model="form.category_id" class="field-select">
             <option value="">— выберите —</option>
             <option v-for="cat in categories" :key="cat.id" :value="cat.id">
-              {{ '—'.repeat(cat.level - 1) }} {{ cat.name }}
+              {{ '—'.repeat(cat.level - 1) }} {{ cat.name }}{{ cat.gender === 'male' ? ' (муж)' : cat.gender ===
+                'female' ? ' (жен)' : '' }}
             </option>
           </select>
         </div>
@@ -102,12 +103,8 @@
         <h2 class="modal-title">Фото — {{ imgModal.product?.name }}</h2>
 
         <div class="img-preview" v-if="imgModal.product?.images?.length">
-          <img
-            v-for="img in imgModal.product.images"
-            :key="img.id"
-            :src="`${apiUrl}/uploads/${img.filename}`"
-            class="thumb"
-          />
+          <img v-for="img in imgModal.product.images" :key="img.id" :src="`${apiUrl}/uploads/${img.filename}`"
+            class="thumb" />
         </div>
         <p v-else class="no-images">Фото пока нет</p>
 
@@ -133,7 +130,12 @@
 
         <table class="table" v-if="varModal.product?.variants?.length">
           <thead>
-            <tr><th>Размер</th><th>Цвет</th><th>Остаток</th><th></th></tr>
+            <tr>
+              <th>Размер</th>
+              <th>Цвет</th>
+              <th>Остаток</th>
+              <th></th>
+            </tr>
           </thead>
           <tbody>
             <tr v-for="v in varModal.product.variants" :key="v.id">
@@ -313,62 +315,252 @@ const removeVariant = async (id) => {
 </script>
 
 <style scoped>
-.page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
-.page-title { font-size: 24px; font-weight: 700; }
-.table-wrap { background: #fff; border-radius: 12px; border: 1px solid #e8e8e4; overflow: hidden; }
-.table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.page-title {
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.table-wrap {
+  background: #fff;
+  border-radius: 12px;
+  border: 1px solid #e8e8e4;
+  overflow: hidden;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
 .table th {
-  text-align: left; padding: 12px 16px; background: #f8f8f6;
-  border-bottom: 1px solid #e8e8e4; font-weight: 600; color: #555;
-  font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;
+  text-align: left;
+  padding: 12px 16px;
+  background: #f8f8f6;
+  border-bottom: 1px solid #e8e8e4;
+  font-weight: 600;
+  color: #555;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
-.table td { padding: 12px 16px; border-bottom: 1px solid #f0f0ee; vertical-align: middle; }
-.table tbody tr:last-child td { border-bottom: none; }
-.table tbody tr:hover { background: #fafaf8; }
-.td-id { color: #999; font-size: 12px; }
-.td-name { font-weight: 500; }
-.td-actions { display: flex; gap: 6px; }
-.no-val { color: #ccc; font-size: 13px; }
-.brand-cell { display: flex; align-items: center; gap: 6px; font-size: 13px; }
-.brand-logo-sm { width: 24px; height: 24px; object-fit: contain; }
+
+.table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid #f0f0ee;
+  vertical-align: middle;
+}
+
+.table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.table tbody tr:hover {
+  background: #fafaf8;
+}
+
+.td-id {
+  color: #999;
+  font-size: 12px;
+}
+
+.td-name {
+  font-weight: 500;
+}
+
+.td-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.no-val {
+  color: #ccc;
+  font-size: 13px;
+}
+
+.brand-cell {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+}
+
+.brand-logo-sm {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+}
+
 .act-btn {
-  background: none; border: 1px solid #e8e8e4; border-radius: 6px;
-  padding: 4px 8px; font-size: 14px; cursor: pointer; transition: all 0.2s;
+  background: none;
+  border: 1px solid #e8e8e4;
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
 }
-.act-btn:hover { background: #f4f4f2; }
-.act-btn.del:hover { border-color: #c0392b; background: #fff0ee; }
+
+.act-btn:hover {
+  background: #f4f4f2;
+}
+
+.act-btn.del:hover {
+  border-color: #c0392b;
+  background: #fff0ee;
+}
+
 .modal-overlay {
-  position: fixed; inset: 0; background: rgba(0,0,0,0.4);
-  display: flex; align-items: center; justify-content: center; z-index: 200;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
 }
+
 .modal {
-  background: #fff; border-radius: 16px; padding: 32px;
-  width: 100%; max-width: 480px; display: flex; flex-direction: column;
-  gap: 14px; max-height: 90vh; overflow-y: auto;
+  background: #fff;
+  border-radius: 16px;
+  padding: 32px;
+  width: 100%;
+  max-width: 480px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  max-height: 90vh;
+  overflow-y: auto;
 }
-.modal--wide { max-width: 640px; }
-.modal-title { font-size: 20px; font-weight: 700; }
-.modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 8px; }
-.field { display: flex; flex-direction: column; gap: 6px; }
-.field-label { font-size: 13px; font-weight: 500; color: #444; }
+
+.modal--wide {
+  max-width: 640px;
+}
+
+.modal-title {
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.field-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: #444;
+}
+
 .field-select {
-  width: 100%; padding: 10px 14px; border: 1px solid #ddd;
-  border-radius: 8px; font-size: 15px; outline: none; background: #fff;
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 15px;
+  outline: none;
+  background: #fff;
 }
-.field-select:focus { border-color: #1a1a1a; }
+
+.field-select:focus {
+  border-color: #1a1a1a;
+}
+
 .field-textarea {
-  width: 100%; padding: 10px 14px; border: 1px solid #ddd;
-  border-radius: 8px; font-size: 14px; outline: none; resize: vertical; font-family: inherit;
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 14px;
+  outline: none;
+  resize: vertical;
+  font-family: inherit;
 }
-.field-textarea:focus { border-color: #1a1a1a; }
-.img-preview { display: flex; flex-wrap: wrap; gap: 8px; }
-.thumb { width: 80px; height: 100px; object-fit: cover; border-radius: 8px; border: 1px solid #e8e8e4; }
-.file-input { width: 100%; padding: 8px; border: 1px dashed #ddd; border-radius: 8px; font-size: 14px; cursor: pointer; }
-.no-images { color: #aaa; font-size: 14px; text-align: center; padding: 16px 0; }
-.variant-form { border-top: 1px solid #e8e8e4; padding-top: 16px; }
-.variant-form-title { font-size: 15px; font-weight: 600; margin-bottom: 12px; }
-.variant-form-row { display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 10px; align-items: flex-end; }
-.stock-input { width: 80px; padding: 6px 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; outline: none; }
-.error { color: #c0392b; font-size: 14px; }
-.success { color: green; font-size: 14px; }
+
+.field-textarea:focus {
+  border-color: #1a1a1a;
+}
+
+.img-preview {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.thumb {
+  width: 80px;
+  height: 100px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid #e8e8e4;
+}
+
+.file-input {
+  width: 100%;
+  padding: 8px;
+  border: 1px dashed #ddd;
+  border-radius: 8px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.no-images {
+  color: #aaa;
+  font-size: 14px;
+  text-align: center;
+  padding: 16px 0;
+}
+
+.variant-form {
+  border-top: 1px solid #e8e8e4;
+  padding-top: 16px;
+}
+
+.variant-form-title {
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+.variant-form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr auto;
+  gap: 10px;
+  align-items: flex-end;
+}
+
+.stock-input {
+  width: 80px;
+  padding: 6px 10px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 14px;
+  outline: none;
+}
+
+.error {
+  color: #c0392b;
+  font-size: 14px;
+}
+
+.success {
+  color: green;
+  font-size: 14px;
+}
 </style>
