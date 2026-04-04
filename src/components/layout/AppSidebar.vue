@@ -13,11 +13,7 @@
 
     <!-- Поиск -->
     <div class="sidebar-search">
-      <input
-        v-model="search"
-        placeholder="Поиск (бренд, товар...)"
-        @keyup.enter="doSearch"
-      />
+      <input v-model="search" placeholder="Поиск (бренд, товар...)" @keyup.enter="doSearch" />
       <span class="search-icon">⌕</span>
     </div>
 
@@ -32,20 +28,12 @@
           <span class="nav-arrow" :class="{ open: openGroups.includes(parent.id) }">›</span>
         </button>
         <div v-if="openGroups.includes(parent.id)" class="nav-group-children">
-          <button
-            class="nav-child"
-            :class="{ active: catalogStore.activeCategory === parent.name }"
-            @click="selectCategory(parent.name)"
-          >
+          <button class="nav-child" :class="{ active: catalogStore.activeCategory === parent.name }"
+            @click="selectCategory(parent.name)">
             Все в «{{ parent.name }}»
           </button>
-          <button
-            v-for="child in parent.children"
-            :key="child.id"
-            class="nav-child"
-            :class="{ active: catalogStore.activeCategory === child.name }"
-            @click="selectCategory(child.name)"
-          >
+          <button v-for="child in parent.children" :key="child.id" class="nav-child"
+            :class="{ active: catalogStore.activeCategory === child.name }" @click="selectCategory(child.name)">
             {{ child.name }}
           </button>
         </div>
@@ -61,13 +49,15 @@
         <span v-if="cart.totalCount > 0" class="nav-count">({{ cart.totalCount }})</span>
       </RouterLink>
       <RouterLink v-if="auth.isLoggedIn" to="/orders">Заказы</RouterLink>
+      <RouterLink v-if="auth.isLoggedIn" to="/profile">Личный кабинет</RouterLink>
       <RouterLink v-if="auth.isAdmin" to="/admin" class="nav-admin">⚙ Admin</RouterLink>
     </nav>
 
     <!-- Футер -->
     <div class="sidebar-footer">
       <template v-if="auth.isLoggedIn">
-        <span class="sidebar-email">{{ auth.email }}</span>
+        <span class="sidebar-email">{{ auth.user?.name || auth.email }}</span>
+        <RouterLink to="/profile" class="profile-link">Личный кабинет →</RouterLink>
         <button class="sidebar-logout" @click="handleLogout">Выйти</button>
       </template>
       <template v-else>
@@ -200,7 +190,9 @@ const handleLogout = () => {
   padding-right: 20px;
 }
 
-.sidebar-search input::placeholder { color: #999; }
+.sidebar-search input::placeholder {
+  color: #999;
+}
 
 .search-icon {
   position: absolute;
@@ -231,11 +223,19 @@ const handleLogout = () => {
   text-underline-offset: 3px;
 }
 
-.nav-admin { color: #0000ff !important; }
+.nav-admin {
+  color: #0000ff !important;
+}
 
-.nav-count { color: #999; font-size: 12px; }
+.nav-count {
+  color: #999;
+  font-size: 12px;
+}
 
-.nav-group { display: flex; flex-direction: column; }
+.nav-group {
+  display: flex;
+  flex-direction: column;
+}
 
 .nav-group-title {
   display: flex;
@@ -258,9 +258,15 @@ const handleLogout = () => {
   line-height: 1;
 }
 
-.nav-arrow.open { transform: rotate(90deg); }
+.nav-arrow.open {
+  transform: rotate(90deg);
+}
 
-.nav-group-children { display: flex; flex-direction: column; padding-left: 12px; }
+.nav-group-children {
+  display: flex;
+  flex-direction: column;
+  padding-left: 12px;
+}
 
 .nav-child {
   padding: 6px 20px;
@@ -272,8 +278,14 @@ const handleLogout = () => {
   text-align: left;
 }
 
-.nav-child:hover { color: #000; }
-.nav-child.active { color: #000; font-weight: 500; }
+.nav-child:hover {
+  color: #000;
+}
+
+.nav-child.active {
+  color: #000;
+  font-weight: 500;
+}
 
 .nav-divider {
   height: 1px;
@@ -297,8 +309,14 @@ const handleLogout = () => {
   white-space: nowrap;
 }
 
-.sidebar-footer a { font-size: 12px; color: #000; }
-.sidebar-footer a:hover { text-decoration: underline; }
+.sidebar-footer a {
+  font-size: 12px;
+  color: #000;
+}
+
+.sidebar-footer a:hover {
+  text-decoration: underline;
+}
 
 .sidebar-logout {
   background: none;
@@ -310,8 +328,12 @@ const handleLogout = () => {
   padding: 0;
 }
 
-.sidebar-logout:hover { color: #000; }
+.sidebar-logout:hover {
+  color: #000;
+}
 
+
+.profile-link { font-size: 12px; color: #000; text-decoration: underline; text-underline-offset: 2px; }
 /* ========================
    МОБИЛЬНАЯ ВЕРСИЯ
 ======================== */
