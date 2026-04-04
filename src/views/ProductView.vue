@@ -38,7 +38,7 @@
       <div class="mobile-thumbs" v-if="product.images?.length > 1">
         <div v-for="(img, i) in product.images" :key="img.id" :class="['mobile-thumb', i === activeImg ? 'active' : '']"
           @click="activeImg = i">
-          <img :src="`getImageUrl(img.filename)" :alt="'Фото ' + (i + 1)" />
+          <img :src="getImageUrl(img.filename)" :alt="'Фото ' + (i + 1)" />
         </div>
       </div>
 
@@ -54,7 +54,7 @@
       </div>
 
       <div class="product-header">
-        <p class="product-brand">{{ product.brand || product.category }}</p>
+        <p class="product-brand">{{ product.brand_name || product.category }}</p>
         <h1 class="product-name">{{ product.name }}</h1>
         <p class="product-price">{{ formatPrice(product.price) }}</p>
       </div>
