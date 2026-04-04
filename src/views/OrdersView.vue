@@ -1,7 +1,7 @@
 <template>
   <div class="orders-page">
     <div class="page-header">
-      <h1 class="page-title">Your Orders</h1>
+      <h1 class="page-title">Мои заказы</h1>
     </div>
 
     <LoadingSpinner v-if="loading" />
@@ -30,7 +30,7 @@
               <p class="order-item-meta">{{ item.size }} / {{ item.color }}</p>
             </div>
             <div class="order-item-right">
-              <span class="order-item-qty">Qty: {{ item.quantity }}</span>
+              <span class="order-item-qty">{{ item.quantity }} шт.</span>
               <span class="order-item-price">{{ formatPrice(item.price) }}</span>
             </div>
           </div>
@@ -41,7 +41,7 @@
             Скидка {{ order.discount_percent }}% применена
           </div>
           <div class="order-total">
-            Total: <strong>{{ formatTotal(order) }}</strong>
+            Итого: <strong>{{ formatTotal(order) }}</strong>
           </div>
         </div>
       </div>
@@ -82,22 +82,30 @@ const formatTotal = (order) => {
 }
 
 const statusLabel = (s) => ({
-  new: 'New',
-  processing: 'Processing',
-  delivered: 'Delivered',
-  cancelled: 'Cancelled'
+  new: 'Новый',
+  processing: 'В обработке',
+  delivered: 'Доставлен',
+  cancelled: 'Отменён'
 }[s] || s)
 </script>
 
 <style scoped>
-.orders-page { display: flex; flex-direction: column; gap: 0; }
+.orders-page {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
 
 .page-header {
   padding-bottom: 16px;
   border-bottom: 1px solid #e8e8e8;
 }
 
-.page-title { font-size: 18px; font-weight: 300; letter-spacing: -0.01em; }
+.page-title {
+  font-size: 18px;
+  font-weight: 300;
+  letter-spacing: -0.01em;
+}
 
 .empty {
   padding: 80px 0;
@@ -106,7 +114,10 @@ const statusLabel = (s) => ({
   gap: 16px;
 }
 
-.empty p { font-size: 13px; color: #999; }
+.empty p {
+  font-size: 13px;
+  color: #999;
+}
 
 .empty-link {
   font-size: 12px;
@@ -115,7 +126,10 @@ const statusLabel = (s) => ({
   text-underline-offset: 3px;
 }
 
-.orders-list { display: flex; flex-direction: column; }
+.orders-list {
+  display: flex;
+  flex-direction: column;
+}
 
 .order-row {
   border-bottom: 1px solid #e8e8e8;
@@ -155,10 +169,25 @@ const statusLabel = (s) => ({
   padding: 4px 10px;
 }
 
-.status--new        { background: #f0f0f0; color: #555; }
-.status--processing { background: #fef9e7; color: #b7950b; }
-.status--delivered  { background: #eafaf1; color: #1e8449; }
-.status--cancelled  { background: #fdedec; color: #c0392b; }
+.status--new {
+  background: #f0f0f0;
+  color: #555;
+}
+
+.status--processing {
+  background: #fef9e7;
+  color: #b7950b;
+}
+
+.status--delivered {
+  background: #eafaf1;
+  color: #1e8449;
+}
+
+.status--cancelled {
+  background: #fdedec;
+  color: #c0392b;
+}
 
 .order-items {
   display: flex;
@@ -174,16 +203,25 @@ const statusLabel = (s) => ({
   border-bottom: 1px solid #f4f4f4;
 }
 
-.order-item:last-child { border-bottom: none; }
+.order-item:last-child {
+  border-bottom: none;
+}
 
-.order-item-left { display: flex; flex-direction: column; gap: 2px; }
+.order-item-left {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
 
 .order-item-brand {
   font-size: 13px;
   font-weight: 500;
 }
 
-.order-item-meta { font-size: 12px; color: #999; }
+.order-item-meta {
+  font-size: 12px;
+  color: #999;
+}
 
 .order-item-right {
   display: flex;
@@ -191,8 +229,15 @@ const statusLabel = (s) => ({
   align-items: center;
 }
 
-.order-item-qty { font-size: 12px; color: #999; }
-.order-item-price { font-size: 13px; font-weight: 500; }
+.order-item-qty {
+  font-size: 12px;
+  color: #999;
+}
+
+.order-item-price {
+  font-size: 13px;
+  font-weight: 500;
+}
 
 .order-footer {
   display: flex;
@@ -201,7 +246,10 @@ const statusLabel = (s) => ({
   padding-top: 4px;
 }
 
-.order-discount { font-size: 11px; color: #27ae60; }
+.order-discount {
+  font-size: 11px;
+  color: #27ae60;
+}
 
 .order-total {
   font-size: 14px;
@@ -228,10 +276,4 @@ const statusLabel = (s) => ({
     gap: 4px;
   }
 }
-
-
-
-
-
-
 </style>

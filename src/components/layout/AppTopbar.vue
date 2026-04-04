@@ -16,8 +16,8 @@
     </div>
 
     <div class="topbar-right">
-      <RouterLink to="/wishlist">Wishlist ({{ wishlist.count }})</RouterLink>
-      <RouterLink to="/cart">Cart ({{ cart.totalCount }})</RouterLink>
+      <RouterLink to="/wishlist">Избранное ({{ wishlist.count }})</RouterLink>
+      <RouterLink to="/cart">Корзина ({{ cart.totalCount }})</RouterLink>
     </div>
   </div>
 </template>
@@ -88,7 +88,9 @@ const breadcrumb = computed(() => {
   transition: opacity 0.15s;
 }
 
-.topbar-right a:hover { opacity: 0.6; }
+.topbar-right a:hover {
+  opacity: 0.6;
+}
 
 .breadcrumb {
   font-size: 11px;

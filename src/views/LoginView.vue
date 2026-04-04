@@ -2,33 +2,22 @@
   <div class="auth-page">
     <div class="auth-box">
       <div class="auth-header">
-        <h1 class="auth-title">Account</h1>
-        <p class="auth-sub">Sign in to your account</p>
+        <h1 class="auth-title">Вход</h1>
+        <p class="auth-sub">Войдите в свой аккаунт</p>
       </div>
 
       <div class="auth-fields">
         <div class="field">
           <label class="field-label">Email</label>
-          <input
-            v-model="email"
-            type="email"
-            class="field-input"
-            placeholder="you@example.com"
-            @keyup.enter="submit"
-          />
+          <input v-model="email" type="email" class="field-input" placeholder="you@example.com" @keyup.enter="submit" />
           <p v-if="errors.email" class="field-error">{{ errors.email }}</p>
         </div>
 
         <div class="field">
           <label class="field-label">Пароль</label>
           <div class="input-wrap">
-            <input
-              v-model="password"
-              :type="showPass ? 'text' : 'password'"
-              class="field-input"
-              placeholder="••••••••"
-              @keyup.enter="submit"
-            />
+            <input v-model="password" :type="showPass ? 'text' : 'password'" class="field-input" placeholder="••••••••"
+              @keyup.enter="submit" />
             <button class="eye-btn" @click="showPass = !showPass" type="button">
               {{ showPass ? '🙈' : '👁' }}
             </button>
@@ -100,14 +89,34 @@ const submit = async () => {
   gap: 24px;
 }
 
-.auth-header { display: flex; flex-direction: column; gap: 4px; }
+.auth-header {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
 
-.auth-title { font-size: 22px; font-weight: 300; letter-spacing: -0.01em; }
-.auth-sub { font-size: 12px; color: #999; }
+.auth-title {
+  font-size: 22px;
+  font-weight: 300;
+  letter-spacing: -0.01em;
+}
 
-.auth-fields { display: flex; flex-direction: column; gap: 14px; }
+.auth-sub {
+  font-size: 12px;
+  color: #999;
+}
 
-.field { display: flex; flex-direction: column; gap: 6px; }
+.auth-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
 
 .field-label {
   font-size: 11px;
@@ -126,11 +135,22 @@ const submit = async () => {
   width: 100%;
 }
 
-.field-input:focus { border-color: #000; }
-.field-error { font-size: 11px; color: #c0392b; }
+.field-input:focus {
+  border-color: #000;
+}
 
-.input-wrap { position: relative; }
-.input-wrap .field-input { padding-right: 40px; }
+.field-error {
+  font-size: 11px;
+  color: #c0392b;
+}
+
+.input-wrap {
+  position: relative;
+}
+
+.input-wrap .field-input {
+  padding-right: 40px;
+}
 
 .eye-btn {
   position: absolute;
@@ -144,7 +164,10 @@ const submit = async () => {
   line-height: 1;
 }
 
-.error-general { font-size: 12px; color: #c0392b; }
+.error-general {
+  font-size: 12px;
+  color: #c0392b;
+}
 
 .submit-btn {
   width: 100%;
@@ -158,8 +181,14 @@ const submit = async () => {
   transition: opacity 0.2s;
 }
 
-.submit-btn:hover:not(:disabled) { opacity: 0.75; }
-.submit-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.submit-btn:hover:not(:disabled) {
+  opacity: 0.75;
+}
+
+.submit-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
 
 .auth-switch {
   text-align: center;
@@ -180,5 +209,4 @@ const submit = async () => {
     padding: 32px 0;
   }
 }
-
 </style>
