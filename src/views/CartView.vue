@@ -18,7 +18,7 @@
           <div class="item-img">
             <img
               v-if="item.product.images?.length"
-              :src="`${apiUrl}/uploads/${item.product.images[0].filename}`"
+              :src="img.filename?.startsWith('http') ? img.filename : `${apiUrl}/uploads/${img.filename}`"
               :alt="item.product.name"
             />
             <div v-else class="item-img-empty"></div>
