@@ -1,75 +1,105 @@
 <template>
   <aside :class="['sidebar', mobileOpen ? 'sidebar--open' : '']">
-    <!-- Шапка сайдбара -->
     <div class="sidebar-header">
       <RouterLink to="/" class="sidebar-logo">MUMU</RouterLink>
       <button class="sidebar-close" @click="$emit('close')">✕</button>
     </div>
 
-    <!-- Промо -->
-    <div class="sidebar-promo">
-      БЕСПЛАТНАЯ ДОСТАВКА ОТ 3799000 UZS
-    </div>
+    <div class="sidebar-promo">БЕСПЛАТНАЯ ДОСТАВКА ОТ 3 799 000 UZS</div>
 
-    <!-- Поиск -->
     <div class="sidebar-search">
-      <input v-model="search" placeholder="Поиск (бренд, товар...)" @keyup.enter="doSearch" />
+      <input v-model="search" placeholder="Поиск..." @keyup.enter="doSearch" />
       <span class="search-icon">⌕</span>
     </div>
 
-    <!-- Навигация -->
     <nav class="sidebar-nav">
-      <RouterLink to="/">Главная</RouterLink>
-      <RouterLink to="/catalog">Каталог</RouterLink>
-
-      <div v-for="parent in tree" :key="parent.id" class="nav-group">
-        <button class="nav-group-title" @click="toggleGroup(parent.id)">
+      <!-- Главные категории по полу -->
+      <div v-for="parent in genderCategories" :key="parent.id" class="nav-section">
+        <button
+          :class="['nav-section-title', openGroups.includes(parent.id) ? 'open' : '']"
+          @click="toggleGroup(parent.id)"
+        >
           <span>{{ parent.name }}</span>
           <span class="nav-arrow" :class="{ open: openGroups.includes(parent.id) }">›</span>
         </button>
-        <div v-if="openGroups.includes(parent.id)" class="nav-group-children">
-          <button class="nav-child" :class="{ active: catalogStore.activeCategory === parent.name }"
-            @click="selectCategory(parent.name)">
-            Все в «{{ parent.name }}»
-          </button>
-          <button v-for="child in parent.children" :key="child.id" class="nav-child"
-            :class="{ active: catalogStore.activeCategory === child.name }" @click="selectCategory(child.name)">
-            {{ child.name }}
+
+        <div v-if="openGroups.includes(parent.id)" class="nav-section-body">
+          <!-- Подкатегории второго уровня -->
+          <div v-for="sub in parent.children" :key="sub.id" class="nav-sub-group">
+            <button
+              :class="['nav-sub-title', openSubGroups.includes(sub.id) ? 'open' : '']"
+              @click="toggleSubGroup(sub.id)"
+            >
+              {{ sub.name }}
+              <span class="nav-arrow-sm" :class="{ open: openSubGroups.includes(sub.id) }">›</span>
+            </button>
+
+            <div v-if="openSubGroups.includes(sub.id)" class="nav-sub-children">
+              <button
+                class="nav-leaf"
+                @click="selectCategory(sub.name)"
+              >
+                Все {{ sub.name.toLowerCase() }}
+              </button>
+              <button
+                v-for="leaf in sub.children"
+                :key="leaf.id"
+                :class="['nav-leaf', catalogStore.activeCategory === leaf.name ? 'active' : '']"
+                @click="selectCategory(leaf.name)"
+              >
+                {{ leaf.name }}
+              </button>
+            </div>
+          </div>
+
+          <!-- Если нет подкатегорий -->
+          <button
+            v-if="!parent.children?.length"
+            class="nav-leaf"
+            @click="selectCategory(parent.name)"
+          >
+            Смотреть всё
           </button>
         </div>
       </div>
 
       <div class="nav-divider"></div>
-      <RouterLink to="/wishlist">
+
+      <!-- Бренды -->
+      <RouterLink to="/brands" class="nav-link">Бренды</RouterLink>
+      <RouterLink to="/catalog" class="nav-link">Все товары</RouterLink>
+
+      <div class="nav-divider"></div>
+
+      <!-- Личное -->
+      <RouterLink to="/wishlist" class="nav-link">
         Избранное
-        <span v-if="wishlist.count > 0" class="nav-count">({{ wishlist.count }})</span>
+        <span v-if="wishlist.count > 0" class="nav-count">{{ wishlist.count }}</span>
       </RouterLink>
-      <RouterLink to="/cart">
+      <RouterLink to="/cart" class="nav-link">
         Корзина
-        <span v-if="cart.totalCount > 0" class="nav-count">({{ cart.totalCount }})</span>
+        <span v-if="cart.totalCount > 0" class="nav-count">{{ cart.totalCount }}</span>
       </RouterLink>
-      <RouterLink v-if="auth.isLoggedIn" to="/orders">Заказы</RouterLink>
-      <RouterLink v-if="auth.isLoggedIn" to="/profile">Личный кабинет</RouterLink>
-      <RouterLink v-if="auth.isAdmin" to="/admin" class="nav-admin">⚙ Admin</RouterLink>
+      <RouterLink v-if="auth.isLoggedIn" to="/orders" class="nav-link">Заказы</RouterLink>
+      <RouterLink v-if="auth.isLoggedIn" to="/profile" class="nav-link">Личный кабинет</RouterLink>
+      <RouterLink v-if="auth.isAdmin" to="/admin" class="nav-link nav-admin">⚙ Админ</RouterLink>
     </nav>
 
-    <!-- Футер -->
     <div class="sidebar-footer">
       <template v-if="auth.isLoggedIn">
-        <span class="sidebar-email">{{ auth.user?.name || auth.email }}</span>
-        <RouterLink to="/profile" class="profile-link">Личный кабинет →</RouterLink>
+        <span class="sidebar-user">{{ auth.user?.name || auth.email }}</span>
         <button class="sidebar-logout" @click="handleLogout">Выйти</button>
       </template>
       <template v-else>
-        <RouterLink to="/login">Войти</RouterLink>
-        <RouterLink to="/register">Регистрация</RouterLink>
+        <RouterLink to="/login" class="footer-link">Войти</RouterLink>
+        <RouterLink to="/register" class="footer-link footer-link--secondary">Регистрация</RouterLink>
       </template>
     </div>
   </aside>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useCartStore } from '@/stores/cart'
@@ -77,10 +107,7 @@ import { useWishlistStore } from '@/stores/wishlist'
 import { useCatalogStore } from '@/stores/catalog'
 import { getCategoriesTree } from '@/services/categories'
 
-const props = defineProps({
-  mobileOpen: { type: Boolean, default: false }
-})
-
+defineProps({ mobileOpen: { type: Boolean, default: false } })
 defineEmits(['close'])
 
 const auth = useAuthStore()
@@ -91,7 +118,12 @@ const router = useRouter()
 
 const tree = ref([])
 const openGroups = ref([])
+const openSubGroups = ref([])
 const search = ref('')
+
+const genderCategories = computed(() =>
+  tree.value.filter(c => c.gender === 'male' || c.gender === 'female')
+)
 
 onMounted(async () => {
   const res = await getCategoriesTree()
@@ -104,9 +136,15 @@ const toggleGroup = (id) => {
   else openGroups.value.push(id)
 }
 
+const toggleSubGroup = (id) => {
+  const idx = openSubGroups.value.indexOf(id)
+  if (idx >= 0) openSubGroups.value.splice(idx, 1)
+  else openSubGroups.value.push(id)
+}
+
 const selectCategory = (name) => {
   catalogStore.fetchProducts(name)
-  router.push('/catalog')
+  router.push({ path: '/catalog', query: { category: name } })
 }
 
 const doSearch = () => {
@@ -124,8 +162,8 @@ const handleLogout = () => {
 
 <style scoped>
 .sidebar {
-  width: 210px;
-  min-width: 210px;
+  width: 220px;
+  min-width: 220px;
   height: 100vh;
   position: sticky;
   top: 0;
@@ -136,21 +174,20 @@ const handleLogout = () => {
   overflow-y: auto;
   overflow-x: hidden;
   z-index: 100;
-  transition: transform 0.3s ease;
 }
 
 .sidebar-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px 20px;
+  padding: 18px 20px;
   border-bottom: 1px solid #e8e8e8;
 }
 
 .sidebar-logo {
   font-size: 16px;
   font-weight: 700;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.08em;
   color: #000;
 }
 
@@ -162,21 +199,21 @@ const handleLogout = () => {
   cursor: pointer;
   color: #999;
   padding: 0;
-  line-height: 1;
 }
 
 .sidebar-promo {
-  padding: 8px 20px;
-  font-size: 10px;
+  padding: 7px 20px;
+  font-size: 9px;
   letter-spacing: 0.08em;
   background: #000;
   color: #fff;
   text-transform: uppercase;
+  text-align: center;
 }
 
 .sidebar-search {
   position: relative;
-  padding: 12px 20px;
+  padding: 10px 20px;
   border-bottom: 1px solid #e8e8e8;
 }
 
@@ -190,118 +227,157 @@ const handleLogout = () => {
   padding-right: 20px;
 }
 
-.sidebar-search input::placeholder {
-  color: #999;
-}
+.sidebar-search input::placeholder { color: #bbb; }
 
 .search-icon {
   position: absolute;
   right: 20px;
   top: 50%;
   transform: translateY(-50%);
-  font-size: 16px;
-  color: #999;
+  font-size: 15px;
+  color: #bbb;
 }
 
+/* Навигация */
 .sidebar-nav {
   flex: 1;
-  padding: 8px 0;
+  padding: 4px 0;
   display: flex;
   flex-direction: column;
 }
 
-.sidebar-nav a {
-  display: block;
-  padding: 8px 20px;
-  font-size: 13px;
-  color: #000;
-  transition: color 0.15s;
-}
+/* Главные секции (Для него / Для неё) */
+.nav-section { display: flex; flex-direction: column; }
 
-.sidebar-nav a.router-link-exact-active {
-  text-decoration: underline;
-  text-underline-offset: 3px;
-}
-
-.nav-admin {
-  color: #0000ff !important;
-}
-
-.nav-count {
-  color: #999;
-  font-size: 12px;
-}
-
-.nav-group {
-  display: flex;
-  flex-direction: column;
-}
-
-.nav-group-title {
+.nav-section-title {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 8px 20px;
+  padding: 11px 20px;
   font-size: 13px;
+  font-weight: 600;
   color: #000;
   background: none;
   border: none;
+  border-bottom: 1px solid #f0f0ee;
   cursor: pointer;
   text-align: left;
   width: 100%;
+  letter-spacing: 0.02em;
+  transition: background 0.15s;
 }
+
+.nav-section-title:hover { background: #fafaf8; }
+.nav-section-title.open { background: #f5f5f3; }
 
 .nav-arrow {
   font-size: 16px;
   color: #999;
   transition: transform 0.2s;
-  line-height: 1;
 }
 
-.nav-arrow.open {
-  transform: rotate(90deg);
+.nav-arrow.open { transform: rotate(90deg); }
+
+.nav-section-body {
+  background: #fafaf8;
+  border-bottom: 1px solid #e8e8e8;
+  padding: 4px 0;
 }
 
-.nav-group-children {
+/* Подкатегории второго уровня (Одежда, Обувь...) */
+.nav-sub-group { display: flex; flex-direction: column; }
+
+.nav-sub-title {
   display: flex;
-  flex-direction: column;
-  padding-left: 12px;
-}
-
-.nav-child {
-  padding: 6px 20px;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 20px 8px 28px;
   font-size: 12px;
-  color: #666;
+  font-weight: 500;
+  color: #444;
   background: none;
   border: none;
   cursor: pointer;
   text-align: left;
+  width: 100%;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  transition: color 0.15s;
 }
 
-.nav-child:hover {
-  color: #000;
+.nav-sub-title:hover { color: #000; }
+.nav-sub-title.open { color: #000; }
+
+.nav-arrow-sm {
+  font-size: 13px;
+  color: #bbb;
+  transition: transform 0.2s;
 }
 
-.nav-child.active {
+.nav-arrow-sm.open { transform: rotate(90deg); }
+
+.nav-sub-children {
+  display: flex;
+  flex-direction: column;
+  padding: 2px 0 6px;
+}
+
+/* Листья (Футболки, Шорты...) */
+.nav-leaf {
+  padding: 6px 20px 6px 40px;
+  font-size: 12px;
+  color: #777;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  transition: color 0.15s;
+}
+
+.nav-leaf:hover { color: #000; }
+.nav-leaf.active { color: #000; font-weight: 600; }
+
+/* Обычные ссылки */
+.nav-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 9px 20px;
+  font-size: 13px;
   color: #000;
-  font-weight: 500;
+  transition: color 0.15s;
+}
+
+.nav-link:hover { opacity: 0.7; }
+.nav-link.router-link-exact-active { text-decoration: underline; text-underline-offset: 3px; }
+.nav-admin { color: #1a73e8 !important; font-weight: 500; }
+
+.nav-count {
+  background: #000;
+  color: #fff;
+  font-size: 10px;
+  padding: 1px 6px;
+  border-radius: 10px;
+  min-width: 18px;
+  text-align: center;
 }
 
 .nav-divider {
   height: 1px;
   background: #e8e8e8;
-  margin: 8px 20px;
+  margin: 4px 0;
 }
 
+/* Футер */
 .sidebar-footer {
-  padding: 16px 20px;
+  padding: 14px 20px;
   border-top: 1px solid #e8e8e8;
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
 
-.sidebar-email {
+.sidebar-user {
   font-size: 11px;
   color: #999;
   overflow: hidden;
@@ -309,14 +385,15 @@ const handleLogout = () => {
   white-space: nowrap;
 }
 
-.sidebar-footer a {
+.footer-link {
   font-size: 12px;
+  font-weight: 500;
   color: #000;
+  padding: 6px 0;
 }
 
-.sidebar-footer a:hover {
-  text-decoration: underline;
-}
+.footer-link--secondary { color: #999; font-weight: 400; }
+.footer-link:hover { text-decoration: underline; }
 
 .sidebar-logout {
   background: none;
@@ -328,15 +405,9 @@ const handleLogout = () => {
   padding: 0;
 }
 
-.sidebar-logout:hover {
-  color: #000;
-}
+.sidebar-logout:hover { color: #c0392b; }
 
-
-.profile-link { font-size: 12px; color: #000; text-decoration: underline; text-underline-offset: 2px; }
-/* ========================
-   МОБИЛЬНАЯ ВЕРСИЯ
-======================== */
+/* Мобилка */
 @media (max-width: 768px) {
   .sidebar {
     position: fixed;
@@ -363,8 +434,6 @@ const handleLogout = () => {
     pointer-events: auto;
   }
 
-  .sidebar-close {
-    display: block;
-  }
+  .sidebar-close { display: block; }
 }
 </style>
