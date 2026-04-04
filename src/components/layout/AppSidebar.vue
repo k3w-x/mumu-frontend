@@ -255,7 +255,7 @@ const handleLogout = () => {
   align-items: center;
   padding: 11px 20px;
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 500;
   color: #000;
   background: none;
   border: none;
