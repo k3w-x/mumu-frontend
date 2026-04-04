@@ -132,7 +132,7 @@
         <h2 class="modal-title">Фото — {{ imgModal.product?.name }}</h2>
 
         <div class="img-preview" v-if="imgModal.product?.images?.length">
-          <img v-for="img in imgModal.product.images" :key="img.id" :src="`${apiUrl}/uploads/${img.filename}`"
+          <img v-for="img in imgModal.product.images" :key="img.id" :src="img.filename?.startsWith('http') ? img.filename : `${apiUrl}/uploads/${img.filename}`"
             class="thumb" />
         </div>
         <p v-else class="no-images">Фото пока нет</p>

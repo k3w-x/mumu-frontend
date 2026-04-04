@@ -1,11 +1,8 @@
 <template>
   <div class="card" @click="$router.push(`/product/${product.id}`)">
     <div class="card-img">
-      <img
-        v-if="product.images && product.images.length > 0"
-        :src="`${apiUrl}/uploads/${product.images[0].filename}`"
-        :alt="product.name"
-      />
+      <img v-if="product.images && product.images.length > 0" :src="getImageUrl(product.images[0].filename)"
+        :alt="product.name" />
       <div v-else class="card-no-img"></div>
 
       <!-- Бейджи -->
@@ -14,10 +11,7 @@
       </div>
 
       <!-- Избранное -->
-      <button
-        :class="['wish-btn', wishlist.isInWishlist(product.id) ? 'wished' : '']"
-        @click.stop="toggleWish"
-      >
+      <button :class="['wish-btn', wishlist.isInWishlist(product.id) ? 'wished' : '']" @click.stop="toggleWish">
         {{ wishlist.isInWishlist(product.id) ? '♥' : '♡' }}
       </button>
     </div>
@@ -41,6 +35,11 @@ const props = defineProps({
 })
 
 const apiUrl = import.meta.env.VITE_API_URL
+const getImageUrl = (filename) => {
+  if (!filename) return ''
+  if (filename.startsWith('http')) return filename
+  return `${apiUrl}/uploads/${filename}`
+}
 const cart = useCartStore()
 const wishlist = useWishlistStore()
 const toast = useToastStore()
@@ -107,7 +106,10 @@ const toggleWish = () => {
   text-transform: uppercase;
 }
 
-.badge--sold { background: #fff; color: #000; }
+.badge--sold {
+  background: #fff;
+  color: #000;
+}
 
 .wish-btn {
   position: absolute;
@@ -123,8 +125,14 @@ const toggleWish = () => {
   transition: opacity 0.2s;
 }
 
-.card:hover .wish-btn { opacity: 1; }
-.wish-btn.wished { opacity: 1; color: #000; }
+.card:hover .wish-btn {
+  opacity: 1;
+}
+
+.wish-btn.wished {
+  opacity: 1;
+  color: #000;
+}
 
 .card-body {
   padding: 10px 0 0;
