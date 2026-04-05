@@ -59,16 +59,12 @@
       </div>
 
       <!-- Цветовые варианты -->
-      <!-- Цветовые варианты -->
-      <div class="color-variants" v-if="colorVariants.length">
+      <div class="color-variants" v-if="allColorVariants.length > 1">
         <p class="sizes-label">ДРУГИЕ ЦВЕТА</p>
         <div class="color-thumbs">
-          <div class="color-thumb active-thumb">
-            <img v-if="product.images?.length" :src="getImageUrl(product.images[0].filename)" :alt="product.name" />
-            <div v-else class="color-thumb-empty"></div>
-          </div>
-          <div v-for="cv in colorVariants" :key="cv.id" class="color-thumb" :title="cv.name"
-            @click="$router.push(`/product/${cv.id}`)">
+          <div v-for="cv in allColorVariants" :key="cv.id"
+            :class="['color-thumb', cv.id === product.id ? 'active-thumb' : '']" :title="cv.name"
+            @click="cv.id !== product.id && $router.push(`/product/${cv.id}`)">
             <img v-if="cv.images?.length" :src="getImageUrl(cv.images[0].filename)" :alt="cv.name" />
             <div v-else class="color-thumb-empty"></div>
           </div>
@@ -118,7 +114,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import api from '@/services/api'
 import { useRoute } from 'vue-router'
 import { getProducts } from '@/services/products'
@@ -162,6 +158,16 @@ const onTouchEnd = (e) => {
 }
 
 const colorVariants = ref([])
+const allColorVariants = computed(() => {
+  if (!product.value) return []
+  const current = {
+    id: product.value.id,
+    name: product.value.name,
+    color_hex: product.value.color_hex,
+    images: product.value.images
+  }
+  return [current, ...colorVariants.value.filter(cv => cv.id !== product.value.id)]
+})
 
 const loadProduct = async (id) => {
   loading.value = true
@@ -516,8 +522,18 @@ details[open] .detail-summary::after {
 }
 
 
-.color-variants { display: flex; flex-direction: column; gap: 10px; }
-.color-thumbs { display: flex; gap: 6px; flex-wrap: wrap; }
+.color-variants {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.color-thumbs {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
 .color-thumb {
   width: 56px;
   height: 70px;
@@ -527,19 +543,32 @@ details[open] .detail-summary::after {
   transition: all 0.2s;
   background: #f2f2f0;
 }
+
 .color-thumb img {
   width: 100%;
   height: 100%;
   object-fit: cover;
   transition: transform 0.3s;
 }
-.color-thumb:hover { border-color: #000; }
-.color-thumb:hover img { transform: scale(1.05); }
+
+.color-thumb:hover {
+  border-color: #000;
+}
+
+.color-thumb:hover img {
+  transform: scale(1.05);
+}
+
 .active-thumb {
   border-color: #000;
   cursor: default;
 }
-.color-thumb-empty { width: 100%; height: 100%; background: #f2f2f0; }
+
+.color-thumb-empty {
+  width: 100%;
+  height: 100%;
+  background: #f2f2f0;
+}
 
 /* ===== MOBILE ===== */
 
