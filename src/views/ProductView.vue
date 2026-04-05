@@ -59,13 +59,18 @@
       </div>
 
       <!-- Цветовые варианты -->
+      <!-- Цветовые варианты -->
       <div class="color-variants" v-if="colorVariants.length">
         <p class="sizes-label">ДРУГИЕ ЦВЕТА</p>
-        <div class="color-dots">
-          <div class="color-dot active-dot" :style="{ background: product.color_hex || '#000' }" title="Текущий цвет">
+        <div class="color-thumbs">
+          <div class="color-thumb active-thumb">
+            <img v-if="product.images?.length" :src="getImageUrl(product.images[0].filename)" :alt="product.name" />
+            <div v-else class="color-thumb-empty"></div>
           </div>
-          <div v-for="cv in colorVariants" :key="cv.id" class="color-dot"
-            :style="{ background: cv.color_hex || '#000' }" :title="cv.name" @click="$router.push(`/product/${cv.id}`)">
+          <div v-for="cv in colorVariants" :key="cv.id" class="color-thumb" :title="cv.name"
+            @click="$router.push(`/product/${cv.id}`)">
+            <img v-if="cv.images?.length" :src="getImageUrl(cv.images[0].filename)" :alt="cv.name" />
+            <div v-else class="color-thumb-empty"></div>
           </div>
         </div>
       </div>
@@ -512,21 +517,29 @@ details[open] .detail-summary::after {
 
 
 .color-variants { display: flex; flex-direction: column; gap: 10px; }
-.color-dots { display: flex; gap: 8px; flex-wrap: wrap; }
-.color-dot {
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
+.color-thumbs { display: flex; gap: 6px; flex-wrap: wrap; }
+.color-thumb {
+  width: 56px;
+  height: 70px;
+  overflow: hidden;
   cursor: pointer;
-  border: 2px solid transparent;
+  border: 1px solid transparent;
   transition: all 0.2s;
-  box-shadow: 0 0 0 1px #ddd;
+  background: #f2f2f0;
 }
-.color-dot:hover { box-shadow: 0 0 0 2px #000; }
-.active-dot {
-  box-shadow: 0 0 0 2px #000;
+.color-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s;
+}
+.color-thumb:hover { border-color: #000; }
+.color-thumb:hover img { transform: scale(1.05); }
+.active-thumb {
+  border-color: #000;
   cursor: default;
 }
+.color-thumb-empty { width: 100%; height: 100%; background: #f2f2f0; }
 
 /* ===== MOBILE ===== */
 
