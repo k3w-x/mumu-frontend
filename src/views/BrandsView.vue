@@ -83,64 +83,51 @@ const selectBrand = async (brand) => {
 .page-title { font-size: 22px; font-weight: 300; }
 .page-sub { font-size: 12px; color: #999; }
 
-.brands-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 1px;
-  background: #e8e8e8;
-  border: 1px solid #e8e8e8;
-}
+.brands-grid { display: flex; flex-direction: column; }
 
 .brand-card {
   display: flex;
-  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  padding: 16px 0;
+  border-bottom: 1px solid #e8e8e8;
   cursor: pointer;
-  background: #fff;
-  transition: background 0.2s;
+  transition: all 0.15s;
 }
 
-.brand-card:hover { background: #f8f8f6; }
+.brand-card:hover .brand-name { text-decoration: underline; text-underline-offset: 3px; }
+.brand-card:hover .brand-view { opacity: 1; }
 
 .brand-logo-wrap {
-  width: 100%;
-  aspect-ratio: 2/1;
+  width: 64px;
+  height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 20px;
+  flex-shrink: 0;
 }
 
 .brand-logo {
-  max-width: 80%;
-  max-height: 50px;
+  max-width: 64px;
+  max-height: 36px;
   object-fit: contain;
-  filter: grayscale(100%);
-  opacity: 0.7;
-  transition: all 0.3s;
-}
-
-.brand-card:hover .brand-logo {
-  filter: grayscale(0%);
-  opacity: 1;
 }
 
 .brand-initials {
-  font-size: 28px;
+  font-size: 22px;
   font-weight: 200;
   color: #ccc;
 }
 
 .brand-footer {
-  padding: 10px 16px 14px;
+  flex: 1;
   display: flex;
-  flex-direction: column;
-  gap: 2px;
-  border-top: 1px solid #e8e8e8;
+  align-items: center;
+  justify-content: space-between;
 }
 
-.brand-name { font-size: 12px; font-weight: 500; letter-spacing: 0.03em; }
-.brand-view { font-size: 11px; color: #aaa; }
-.brand-card:hover .brand-view { color: #000; }
+.brand-name { font-size: 14px; font-weight: 400; }
+.brand-view { font-size: 12px; color: #999; opacity: 0; transition: opacity 0.15s; }
 
 /* Товары бренда */
 .brand-products { display: flex; flex-direction: column; gap: 24px; }
@@ -149,11 +136,7 @@ const selectBrand = async (brand) => {
 .back-btn:hover { color: #000; }
 .brand-products-title { display: flex; align-items: center; gap: 12px; }
 .brand-products-title h2 { font-size: 20px; font-weight: 300; }
-.brand-logo-sm { width: 40px; height: 40px; object-fit: contain; border: 1px solid #eee; border-radius: 6px; padding: 2px; }
+.brand-logo-sm { width: 40px; height: 40px; object-fit: contain; border: 1px solid #eee; padding: 2px; }
 .brand-products-desc { font-size: 13px; color: #777; line-height: 1.6; }
 .empty { padding: 60px 0; text-align: center; color: #999; font-size: 13px; }
-
-@media (max-width: 768px) {
-  .brands-grid { grid-template-columns: repeat(2, 1fr); }
-}
 </style>
