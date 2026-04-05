@@ -17,7 +17,7 @@
         <div v-for="(img, i) in product.images" :key="img.id" :class="['gallery-grid-item', i < 2 ? 'half' : 'full']"
           @click="openLightbox(i)">
           <img :src="getImageUrl(img.filename)" :alt="product.name" />
-          <div class="zoom-hint">🔍</div>
+          <div class="zoom-hint"></div>
         </div>
       </div>
       <div v-else class="gallery-empty desktop-gallery"></div>
@@ -579,7 +579,7 @@ details[open] .detail-summary::after {
 .lightbox {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.95);
+  background: rgba(255, 255, 255, 0.97);
   z-index: 1000;
   display: flex;
   align-items: center;
