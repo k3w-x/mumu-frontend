@@ -4,7 +4,7 @@
     <!-- Левая часть — галерея -->
     <div class="product-gallery">
 
-      <!-- Десктоп: вертикальные миниатюры слева -->
+      <!-- Десктоп: миниатюры слева (прилипают) -->
       <div class="gallery-thumbs" v-if="product.images?.length > 1">
         <div v-for="(img, i) in product.images" :key="img.id" :class="['thumb', i === activeImg ? 'active' : '']"
           @click="activeImg = i">
@@ -12,40 +12,40 @@
         </div>
       </div>
 
-      <!-- Десктоп: главное фото -->
-      <div class="gallery-main desktop-main">
-        <img v-if="product.images?.length" :src="getImageUrl(product.images[activeImg].filename)" :alt="product.name" />
-        <div v-else class="gallery-empty"></div>
+      <!-- Десктоп: сетка фото -->
+      <div class="gallery-grid desktop-gallery" v-if="product.images?.length">
+        <div v-for="(img, i) in product.images" :key="img.id" :class="['gallery-grid-item', i < 2 ? 'half' : 'full']"
+          @click="openLightbox(i)">
+          <img :src="getImageUrl(img.filename)" :alt="product.name" />
+          <div class="zoom-hint">🔍</div>
+        </div>
       </div>
+      <div v-else class="gallery-empty desktop-gallery"></div>
 
       <!-- Мобильный свайп -->
       <div class="mobile-swipe" v-if="product.images?.length" @touchstart="onTouchStart" @touchend="onTouchEnd">
         <div class="mobile-swipe-track" :style="{ transform: `translateX(-${activeImg * 100}%)` }">
-          <div v-for="(img, i) in product.images" :key="img.id" class="mobile-swipe-slide">
+          <div v-for="(img, i) in product.images" :key="img.id" class="mobile-swipe-slide" @click="openLightbox(i)">
             <img :src="getImageUrl(img.filename)" :alt="'Фото ' + (i + 1)" />
           </div>
         </div>
-
-        <!-- Точки-индикаторы -->
         <div class="swipe-dots" v-if="product.images.length > 1">
           <span v-for="(img, i) in product.images" :key="i" :class="['dot', i === activeImg ? 'active' : '']"
             @click="activeImg = i"></span>
         </div>
       </div>
 
-      <!-- Мобильные миниатюры — СНАРУЖИ свайпа -->
+      <!-- Мобильные миниатюры -->
       <div class="mobile-thumbs" v-if="product.images?.length > 1">
         <div v-for="(img, i) in product.images" :key="img.id" :class="['mobile-thumb', i === activeImg ? 'active' : '']"
           @click="activeImg = i">
           <img :src="getImageUrl(img.filename)" :alt="'Фото ' + (i + 1)" />
         </div>
       </div>
-
     </div>
 
-    <!-- Правая панель — прилипает -->
+    <!-- Правая панель -->
     <div class="product-info">
-      <!-- Путь -->
       <div class="product-path">
         <RouterLink to="/catalog">Каталог</RouterLink>
         <span> / </span>
@@ -70,6 +70,7 @@
           </div>
         </div>
       </div>
+
       <!-- Размеры -->
       <div class="product-sizes" v-if="product.variants?.length">
         <p class="sizes-label">ВЫБЕРИТЕ РАЗМЕР</p>
@@ -83,7 +84,6 @@
         </div>
       </div>
 
-      <!-- Кнопка добавить -->
       <button class="add-btn" :disabled="!selectedVariant" @click="addToCart">
         {{ selectedVariant ? `ДОБАВИТЬ В КОРЗИНУ ( ${formatPrice(product.price)} )` : 'ВЫБЕРИТЕ РАЗМЕР' }}
       </button>
@@ -94,7 +94,6 @@
 
       <p v-if="added" class="added-msg">Добавлено в корзину</p>
 
-      <!-- Детали -->
       <div class="product-details" v-if="product.description || product.material">
         <details class="detail-block" v-if="product.description">
           <summary class="detail-summary">ОПИСАНИЕ</summary>
@@ -107,6 +106,17 @@
       </div>
     </div>
 
+    <!-- Лайтбокс -->
+    <div v-if="lightbox.open" class="lightbox" @click.self="lightbox.open = false">
+      <button class="lb-close" @click="lightbox.open = false">✕</button>
+      <button class="lb-prev" @click="lbPrev" v-if="product.images.length > 1">‹</button>
+      <button class="lb-next" @click="lbNext" v-if="product.images.length > 1">›</button>
+      <div class="lb-img-wrap" @touchstart="onLbTouchStart" @touchend="onLbTouchEnd">
+        <img :src="getImageUrl(product.images[lightbox.index].filename)" :alt="product.name" class="lb-img" />
+      </div>
+      <div class="lb-counter">{{ lightbox.index + 1 }} / {{ product.images.length }}</div>
+    </div>
+
   </div>
 
   <LoadingSpinner v-else-if="loading" />
@@ -115,12 +125,12 @@
 
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
-import api from '@/services/api'
 import { useRoute } from 'vue-router'
 import { getProducts } from '@/services/products'
 import { useCartStore } from '@/stores/cart'
 import { useWishlistStore } from '@/stores/wishlist'
 import { useToastStore } from '@/stores/toast'
+import api from '@/services/api'
 import LoadingSpinner from '@/components/ui/LoadingSpinner.vue'
 
 const route = useRoute()
@@ -134,30 +144,15 @@ const getImageUrl = (filename) => {
   if (filename.startsWith('http')) return filename
   return `${apiUrl}/uploads/${filename}`
 }
+
 const product = ref(null)
 const loading = ref(true)
 const selectedVariant = ref(null)
 const activeImg = ref(0)
 const added = ref(false)
-
-// Свайп на мобилке
-const touchStartX = ref(0)
-
-const onTouchStart = (e) => {
-  touchStartX.value = e.touches[0].clientX
-}
-
-const onTouchEnd = (e) => {
-  const diff = touchStartX.value - e.changedTouches[0].clientX
-  if (Math.abs(diff) < 40) return // слишком короткий свайп
-  if (diff > 0 && activeImg.value < product.value.images.length - 1) {
-    activeImg.value++
-  } else if (diff < 0 && activeImg.value > 0) {
-    activeImg.value--
-  }
-}
-
 const colorVariants = ref([])
+const lightbox = ref({ open: false, index: 0 })
+
 const allColorVariants = computed(() => {
   if (!product.value) return []
   const current = {
@@ -169,6 +164,29 @@ const allColorVariants = computed(() => {
   return [current, ...colorVariants.value.filter(cv => cv.id !== product.value.id)]
 })
 
+const touchStartX = ref(0)
+const lbTouchStartX = ref(0)
+
+const onTouchStart = (e) => { touchStartX.value = e.touches[0].clientX }
+const onTouchEnd = (e) => {
+  const diff = touchStartX.value - e.changedTouches[0].clientX
+  if (Math.abs(diff) < 40) return
+  if (diff > 0 && activeImg.value < product.value.images.length - 1) activeImg.value++
+  else if (diff < 0 && activeImg.value > 0) activeImg.value--
+}
+
+const onLbTouchStart = (e) => { lbTouchStartX.value = e.touches[0].clientX }
+const onLbTouchEnd = (e) => {
+  const diff = lbTouchStartX.value - e.changedTouches[0].clientX
+  if (Math.abs(diff) < 40) return
+  if (diff > 0) lbNext()
+  else lbPrev()
+}
+
+const openLightbox = (i) => { lightbox.value = { open: true, index: i } }
+const lbPrev = () => { lightbox.value.index = (lightbox.value.index - 1 + product.value.images.length) % product.value.images.length }
+const lbNext = () => { lightbox.value.index = (lightbox.value.index + 1) % product.value.images.length }
+
 const loadProduct = async (id) => {
   loading.value = true
   try {
@@ -176,7 +194,6 @@ const loadProduct = async (id) => {
     product.value = res.data.find(p => p.id === Number(id))
     activeImg.value = 0
     selectedVariant.value = null
-
     if (product.value?.color_group_id) {
       const cvRes = await api.get('/products/color-variants', {
         params: { color_group_id: product.value.color_group_id, exclude_id: id }
@@ -191,10 +208,7 @@ const loadProduct = async (id) => {
 }
 
 onMounted(() => loadProduct(route.params.id))
-
-watch(() => route.params.id, (newId) => {
-  if (newId) loadProduct(newId)
-})
+watch(() => route.params.id, (newId) => { if (newId) loadProduct(newId) })
 
 const formatPrice = (price) => Number(price).toLocaleString('ru-RU') + ' UZS'
 
@@ -234,6 +248,10 @@ const toggleWish = () => {
   gap: 4px;
   width: 60px;
   flex-shrink: 0;
+  position: sticky;
+  top: 40px;
+  max-height: calc(100vh - 60px);
+  overflow-y: auto;
 }
 
 .thumb {
@@ -243,6 +261,7 @@ const toggleWish = () => {
   cursor: pointer;
   border: 1px solid transparent;
   transition: border-color 0.15s;
+  flex-shrink: 0;
 }
 
 .thumb img {
@@ -255,23 +274,62 @@ const toggleWish = () => {
   border-color: #000;
 }
 
-.gallery-main {
+/* Сетка фото */
+.gallery-grid {
   flex: 1;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+}
+
+.gallery-grid-item {
+  position: relative;
+  overflow: hidden;
+  cursor: zoom-in;
   background: #f2f2f0;
 }
 
-.gallery-main img {
+.gallery-grid-item.full {
+  grid-column: 1 / -1;
+}
+
+.gallery-grid-item img {
   width: 100%;
   display: block;
+  transition: transform 0.4s ease;
+}
+
+.gallery-grid-item:hover img {
+  transform: scale(1.02);
+}
+
+.zoom-hint {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.gallery-grid-item:hover .zoom-hint {
+  opacity: 1;
 }
 
 .gallery-empty {
-  width: 100%;
+  flex: 1;
   aspect-ratio: 3/4;
   background: #f2f2f0;
 }
 
-/* Правая панель — прилипает */
+/* Правая панель */
 .product-info {
   position: sticky;
   top: 40px;
@@ -319,6 +377,55 @@ const toggleWish = () => {
   font-size: 15px;
   color: #000;
   margin-top: 4px;
+}
+
+/* Цветовые варианты */
+.color-variants {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.color-thumbs {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.color-thumb {
+  width: 56px;
+  height: 70px;
+  overflow: hidden;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all 0.2s;
+  background: #f2f2f0;
+}
+
+.color-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s;
+}
+
+.color-thumb:hover {
+  border-color: #000;
+}
+
+.color-thumb:hover img {
+  transform: scale(1.05);
+}
+
+.active-thumb {
+  border-color: #000;
+  cursor: default;
+}
+
+.color-thumb-empty {
+  width: 100%;
+  height: 100%;
+  background: #f2f2f0;
 }
 
 /* Размеры */
@@ -423,7 +530,6 @@ const toggleWish = () => {
   padding-top: 16px;
   display: flex;
   flex-direction: column;
-  gap: 0;
 }
 
 .detail-block {
@@ -469,6 +575,101 @@ details[open] .detail-summary::after {
   font-size: 13px;
 }
 
+/* Лайтбокс */
+.lightbox {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.95);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.lb-img-wrap {
+  max-width: 90vw;
+  max-height: 90vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.lb-img {
+  max-width: 100%;
+  max-height: 90vh;
+  object-fit: contain;
+  animation: lbFadeIn 0.2s ease;
+}
+
+@keyframes lbFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.97);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.lb-close {
+  position: fixed;
+  top: 20px;
+  right: 24px;
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 24px;
+  cursor: pointer;
+  z-index: 1001;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+}
+
+.lb-close:hover {
+  opacity: 1;
+}
+
+.lb-prev,
+.lb-next {
+  position: fixed;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 48px;
+  cursor: pointer;
+  opacity: 0.5;
+  transition: opacity 0.2s;
+  z-index: 1001;
+  padding: 0 20px;
+  line-height: 1;
+}
+
+.lb-prev {
+  left: 0;
+}
+
+.lb-next {
+  right: 0;
+}
+
+.lb-prev:hover,
+.lb-next:hover {
+  opacity: 1;
+}
+
+.lb-counter {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: #fff;
+  font-size: 12px;
+  opacity: 0.6;
+}
 
 /* Мобильный свайп */
 .mobile-swipe {
@@ -482,7 +683,6 @@ details[open] .detail-summary::after {
   display: flex;
   width: 100%;
   transition: transform 0.35s ease;
-  will-change: transform;
 }
 
 .mobile-swipe-slide {
@@ -497,7 +697,6 @@ details[open] .detail-summary::after {
   display: block;
 }
 
-/* Точки */
 .swipe-dots {
   position: absolute;
   bottom: 12px;
@@ -521,61 +720,18 @@ details[open] .detail-summary::after {
   background: #fff;
 }
 
-
-.color-variants {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.color-thumbs {
-  display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
-}
-
-.color-thumb {
-  width: 56px;
-  height: 70px;
-  overflow: hidden;
-  cursor: pointer;
-  border: 1px solid transparent;
-  transition: all 0.2s;
-  background: #f2f2f0;
-}
-
-.color-thumb img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: transform 0.3s;
-}
-
-.color-thumb:hover {
-  border-color: #000;
-}
-
-.color-thumb:hover img {
-  transform: scale(1.05);
-}
-
-.active-thumb {
-  border-color: #000;
-  cursor: default;
-}
-
-.color-thumb-empty {
-  width: 100%;
-  height: 100%;
-  background: #f2f2f0;
-}
-
-/* ===== MOBILE ===== */
-
 .mobile-thumbs {
   display: none;
 }
 
+/* Десктоп */
+@media (min-width: 769px) {
+  .mobile-swipe {
+    display: none;
+  }
+}
+
+/* Мобилка */
 @media (max-width: 768px) {
   .product-page {
     grid-template-columns: 1fr;
@@ -598,11 +754,10 @@ details[open] .detail-summary::after {
   }
 
   .gallery-thumbs,
-  .desktop-main {
+  .desktop-gallery {
     display: none;
   }
 
-  /* МИНИАТЮРЫ */
   .mobile-thumbs {
     display: flex;
     gap: 6px;
@@ -610,11 +765,8 @@ details[open] .detail-summary::after {
     padding: 8px 0 4px;
     width: 100%;
     box-sizing: border-box;
-
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
-
-    /* плавный UX */
     scroll-snap-type: x mandatory;
   }
 
@@ -626,12 +778,10 @@ details[open] .detail-summary::after {
     flex: 0 0 auto;
     width: 80px;
     height: 100px;
-
     cursor: pointer;
     border: 2px solid transparent;
     transition: border-color 0.2s;
     overflow: hidden;
-
     scroll-snap-align: start;
   }
 
@@ -647,14 +797,6 @@ details[open] .detail-summary::after {
   }
 }
 
-/* Десктоп */
-@media (min-width: 769px) {
-  .mobile-swipe {
-    display: none;
-  }
-}
-
-/* Очень маленькие экраны */
 @media (max-width: 480px) {
   .thumb {
     width: 80px;
