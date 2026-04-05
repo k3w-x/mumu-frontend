@@ -3,7 +3,48 @@
     <div class="page-header">
       <h1 class="page-title">Оформление заказа</h1>
     </div>
+    <!-- Заказ оформлен -->
+    <div v-if="orderPlaced" class="order-success">
+      <div class="success-icon">✓</div>
+      <h2 class="success-title">Заказ оформлен!</h2>
+      <p class="success-sub">Для завершения покупки переведите оплату на карту</p>
 
+      <div class="payment-card">
+        <div class="payment-row">
+          <span class="payment-label">Сумма к оплате</span>
+          <span class="payment-amount">{{ formatPrice(orderTotal) }}</span>
+        </div>
+        <div class="payment-divider"></div>
+        <div class="payment-row">
+          <span class="payment-label">Номер карты</span>
+          <div class="card-number-wrap">
+            <span class="card-number">5440 8100 0891 1330</span>
+            <button class="copy-btn" @click="copyCard">{{ copied ? '✓ Скопировано' : 'Копировать' }}</button>
+          </div>
+        </div>
+        <div class="payment-row">
+          <span class="payment-label">Владелец</span>
+          <span class="payment-value">Amal</span>
+        </div>
+      </div>
+
+      <div class="payment-steps">
+        <div class="payment-step">
+          <span class="step-num">1</span>
+          <span>Переведите <strong>{{ formatPrice(orderTotal) }}</strong> на карту выше</span>
+        </div>
+        <div class="payment-step">
+          <span class="step-num">2</span>
+          <span>Отправьте скриншот оплаты в Telegram <a href="https://t.me/k3w_x" target="_blank">@k3w_x</a></span>
+        </div>
+        <div class="payment-step">
+          <span class="step-num">3</span>
+          <span>Мы подтвердим заказ в течение 1 часа</span>
+        </div>
+      </div>
+
+      <RouterLink to="/orders" class="orders-link">Посмотреть мои заказы →</RouterLink>
+    </div>
     <div v-if="cart.items.length === 0" class="empty">
       <p>Ваша корзина пуста</p>
       <RouterLink to="/catalog" class="empty-link">Перейти в каталог →</RouterLink>
@@ -52,7 +93,8 @@
         <div class="summary-items">
           <div v-for="item in cart.items" :key="item.variant.id" class="summary-item">
             <div class="summary-item-img">
-              <img v-if="item.product.images?.length" :src="item.product.images[0].filename?.startsWith('http') ? item.product.images[0].filename : `${apiUrl}/uploads/${item.product.images[0].filename}`"
+              <img v-if="item.product.images?.length"
+                :src="item.product.images[0].filename?.startsWith('http') ? item.product.images[0].filename : `${apiUrl}/uploads/${item.product.images[0].filename}`"
                 :alt="item.product.name" />
               <div v-else class="summary-item-img-empty"></div>
             </div>
@@ -114,7 +156,14 @@ const promoCode = ref('')
 const promoLoading = ref(false)
 const promoError = ref('')
 const discount = ref(0)
-
+const orderPlaced = ref(false)
+const orderTotal = ref(0)
+const copied = ref(false)
+const copyCard = () => {
+  navigator.clipboard.writeText('5440810008911330')
+  copied.value = true
+  setTimeout(() => copied.value = false, 2000)
+}
 const finalPrice = computed(() => {
   const base = cart.totalPrice
   return discount.value > 0 ? base - (base * discount.value / 100) : base
@@ -158,8 +207,8 @@ const submit = async () => {
     }))
     await createOrder(items, form.value.address, form.value.phone, discount.value)
     cart.clearCart()
-    toast.success('Заказ оформлен!')
-    router.push('/orders')
+    orderTotal.value = finalPrice.value
+    orderPlaced.value = true
   } catch (err) {
     error.value = err.response?.data?.error || 'Ошибка при оформлении'
   } finally {
@@ -448,7 +497,109 @@ const submit = async () => {
 }
 
 
+.order-success {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  padding: 60px 0;
+  max-width: 480px;
+  margin: 0 auto;
+  text-align: center;
+}
 
+.success-icon {
+  width: 56px;
+  height: 56px;
+  background: #000;
+  color: #fff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+}
+
+.success-title { font-size: 22px; font-weight: 300; }
+.success-sub { font-size: 13px; color: #999; margin-top: -16px; }
+
+.payment-card {
+  width: 100%;
+  border: 1px solid #e8e8e8;
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  text-align: left;
+}
+
+.payment-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.payment-label { font-size: 12px; color: #999; }
+.payment-amount { font-size: 18px; font-weight: 600; }
+.payment-value { font-size: 14px; font-weight: 500; }
+.payment-divider { height: 1px; background: #e8e8e8; }
+
+.card-number-wrap { display: flex; align-items: center; gap: 10px; }
+.card-number { font-size: 15px; font-weight: 600; letter-spacing: 0.05em; font-family: monospace; }
+
+.copy-btn {
+  padding: 4px 10px;
+  border: 1px solid #ddd;
+  background: #fff;
+  font-size: 11px;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+.copy-btn:hover { border-color: #000; }
+
+.payment-steps {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  text-align: left;
+}
+
+.payment-step {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  font-size: 13px;
+  color: #444;
+  line-height: 1.5;
+}
+
+.step-num {
+  width: 24px;
+  height: 24px;
+  background: #f0f0ee;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.payment-step a { color: #000; font-weight: 500; text-decoration: underline; }
+
+.orders-link {
+  font-size: 12px;
+  color: #999;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.orders-link:hover { color: #000; }
 
 
 @media (max-width: 768px) {
