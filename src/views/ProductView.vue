@@ -14,8 +14,7 @@
 
       <!-- Десктоп: главное фото -->
       <div class="gallery-main desktop-main">
-        <img v-if="product.images?.length" :src="getImageUrl(product.images[activeImg].filename)"
-          :alt="product.name" />
+        <img v-if="product.images?.length" :src="getImageUrl(product.images[activeImg].filename)" :alt="product.name" />
         <div v-else class="gallery-empty"></div>
       </div>
 
@@ -59,6 +58,17 @@
         <p class="product-price">{{ formatPrice(product.price) }}</p>
       </div>
 
+      <!-- Цветовые варианты -->
+      <div class="color-variants" v-if="colorVariants.length">
+        <p class="sizes-label">ДРУГИЕ ЦВЕТА</p>
+        <div class="color-dots">
+          <div class="color-dot active-dot" :style="{ background: product.color_hex || '#000' }" title="Текущий цвет">
+          </div>
+          <div v-for="cv in colorVariants" :key="cv.id" class="color-dot"
+            :style="{ background: cv.color_hex || '#000' }" :title="cv.name" @click="$router.push(`/product/${cv.id}`)">
+          </div>
+        </div>
+      </div>
       <!-- Размеры -->
       <div class="product-sizes" v-if="product.variants?.length">
         <p class="sizes-label">ВЫБЕРИТЕ РАЗМЕР</p>
@@ -103,7 +113,8 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
+import api from '@/services/api'
 import { useRoute } from 'vue-router'
 import { getProducts } from '@/services/products'
 import { useCartStore } from '@/stores/cart'
@@ -145,13 +156,33 @@ const onTouchEnd = (e) => {
   }
 }
 
-onMounted(async () => {
+const colorVariants = ref([])
+
+const loadProduct = async (id) => {
+  loading.value = true
   try {
     const res = await getProducts()
-    product.value = res.data.find(p => p.id === Number(route.params.id))
+    product.value = res.data.find(p => p.id === Number(id))
+    activeImg.value = 0
+    selectedVariant.value = null
+
+    if (product.value?.color_group_id) {
+      const cvRes = await api.get('/products/color-variants', {
+        params: { color_group_id: product.value.color_group_id, exclude_id: id }
+      })
+      colorVariants.value = cvRes.data
+    } else {
+      colorVariants.value = []
+    }
   } finally {
     loading.value = false
   }
+}
+
+onMounted(() => loadProduct(route.params.id))
+
+watch(() => route.params.id, (newId) => {
+  if (newId) loadProduct(newId)
 })
 
 const formatPrice = (price) => Number(price).toLocaleString('ru-RU') + ' UZS'
@@ -477,6 +508,24 @@ details[open] .detail-summary::after {
 
 .dot.active {
   background: #fff;
+}
+
+
+.color-variants { display: flex; flex-direction: column; gap: 10px; }
+.color-dots { display: flex; gap: 8px; flex-wrap: wrap; }
+.color-dot {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: all 0.2s;
+  box-shadow: 0 0 0 1px #ddd;
+}
+.color-dot:hover { box-shadow: 0 0 0 2px #000; }
+.active-dot {
+  box-shadow: 0 0 0 2px #000;
+  cursor: default;
 }
 
 /* ===== MOBILE ===== */
