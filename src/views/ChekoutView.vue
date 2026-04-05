@@ -3,6 +3,7 @@
     <div class="page-header">
       <h1 class="page-title">Оформление заказа</h1>
     </div>
+
     <!-- Заказ оформлен -->
     <div v-if="orderPlaced" class="order-success">
       <div class="success-icon">✓</div>
@@ -45,7 +46,8 @@
 
       <RouterLink to="/orders" class="orders-link">Посмотреть мои заказы →</RouterLink>
     </div>
-    <div v-if="cart.items.length === 0" class="empty">
+
+    <div v-else-if="cart.items.length === 0" class="empty">
       <p>Ваша корзина пуста</p>
       <RouterLink to="/catalog" class="empty-link">Перейти в каталог →</RouterLink>
     </div>
@@ -62,7 +64,7 @@
             </div>
             <div class="field">
               <label class="field-label">Телефон</label>
-              <input v-model="form.phone" class="field-input" placeholder="+7 999 000 00 00" />
+              <input v-model="form.phone" class="field-input" placeholder="+998 90 123 45 67" />
             </div>
           </div>
         </div>
@@ -75,9 +77,7 @@
             <button v-if="discount === 0" class="promo-btn" :disabled="promoLoading || !promoCode" @click="applyPromo">
               {{ promoLoading ? '...' : 'Применить' }}
             </button>
-            <button v-else class="promo-btn promo-btn--reset" @click="resetPromo">
-              Убрать
-            </button>
+            <button v-else class="promo-btn promo-btn--reset" @click="resetPromo">Убрать</button>
           </div>
           <p v-if="promoError" class="field-error">{{ promoError }}</p>
           <p v-if="discount > 0" class="promo-ok">Скидка {{ discount }}% применена</p>
@@ -101,8 +101,7 @@
             <div class="summary-item-info">
               <p class="summary-item-brand">{{ item.product.brand_name || item.product.category }}</p>
               <p class="summary-item-name">{{ item.product.name }}</p>
-              <p class="summary-item-meta">
-                {{ item.variant.size }} · {{ item.variant.color }} · {{ item.quantity }} шт.
+              <p class="summary-item-meta">{{ item.variant.size }} · {{ item.variant.color }} · {{ item.quantity }} шт.
               </p>
             </div>
             <p class="summary-item-price">{{ formatPrice(item.product.price * item.quantity) }}</p>
@@ -138,7 +137,6 @@
 
 <script setup>
 import { ref, computed } from 'vue'
-import { useRouter } from 'vue-router'
 import { useCartStore } from '@/stores/cart'
 import { useToastStore } from '@/stores/toast'
 import { createOrder } from '@/services/orders'
@@ -146,7 +144,6 @@ import { checkPromocode } from '@/services/promocodes'
 
 const cart = useCartStore()
 const toast = useToastStore()
-const router = useRouter()
 const apiUrl = import.meta.env.VITE_API_URL
 
 const form = ref({ address: '', phone: '' })
@@ -159,17 +156,19 @@ const discount = ref(0)
 const orderPlaced = ref(false)
 const orderTotal = ref(0)
 const copied = ref(false)
-const copyCard = () => {
-  navigator.clipboard.writeText('5440810008911330')
-  copied.value = true
-  setTimeout(() => copied.value = false, 2000)
-}
+
 const finalPrice = computed(() => {
   const base = cart.totalPrice
   return discount.value > 0 ? base - (base * discount.value / 100) : base
 })
 
 const formatPrice = (price) => Number(price).toLocaleString('ru-RU') + ' UZS'
+
+const copyCard = () => {
+  navigator.clipboard.writeText('5440810008911330')
+  copied.value = true
+  setTimeout(() => copied.value = false, 2000)
+}
 
 const applyPromo = async () => {
   if (!promoCode.value) return
@@ -207,10 +206,8 @@ const submit = async () => {
     }))
     await createOrder(items, form.value.address, form.value.phone, discount.value)
     const total = finalPrice.value
-    cart.clearCart()
     orderTotal.value = total
-    orderPlaced.value = true
-    orderTotal.value = finalPrice.value
+    cart.clearCart()
     orderPlaced.value = true
   } catch (err) {
     error.value = err.response?.data?.error || 'Ошибка при оформлении'
@@ -380,7 +377,6 @@ const submit = async () => {
   color: #c0392b;
 }
 
-/* Сводка */
 .checkout-summary {
   padding: 32px 0 32px 32px;
   position: sticky;
@@ -499,7 +495,7 @@ const submit = async () => {
   cursor: not-allowed;
 }
 
-
+/* Успешный заказ */
 .order-success {
   display: flex;
   flex-direction: column;
@@ -646,7 +642,6 @@ const submit = async () => {
 .orders-link:hover {
   color: #000;
 }
-
 
 @media (max-width: 768px) {
   .checkout-layout {
