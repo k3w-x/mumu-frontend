@@ -206,7 +206,10 @@ const submit = async () => {
       quantity: i.quantity
     }))
     await createOrder(items, form.value.address, form.value.phone, discount.value)
+    const total = finalPrice.value
     cart.clearCart()
+    orderTotal.value = total
+    orderPlaced.value = true
     orderTotal.value = finalPrice.value
     orderPlaced.value = true
   } catch (err) {
@@ -520,8 +523,16 @@ const submit = async () => {
   font-size: 22px;
 }
 
-.success-title { font-size: 22px; font-weight: 300; }
-.success-sub { font-size: 13px; color: #999; margin-top: -16px; }
+.success-title {
+  font-size: 22px;
+  font-weight: 300;
+}
+
+.success-sub {
+  font-size: 13px;
+  color: #999;
+  margin-top: -16px;
+}
 
 .payment-card {
   width: 100%;
@@ -541,13 +552,38 @@ const submit = async () => {
   gap: 12px;
 }
 
-.payment-label { font-size: 12px; color: #999; }
-.payment-amount { font-size: 18px; font-weight: 600; }
-.payment-value { font-size: 14px; font-weight: 500; }
-.payment-divider { height: 1px; background: #e8e8e8; }
+.payment-label {
+  font-size: 12px;
+  color: #999;
+}
 
-.card-number-wrap { display: flex; align-items: center; gap: 10px; }
-.card-number { font-size: 15px; font-weight: 600; letter-spacing: 0.05em; font-family: monospace; }
+.payment-amount {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.payment-value {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.payment-divider {
+  height: 1px;
+  background: #e8e8e8;
+}
+
+.card-number-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.card-number {
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  font-family: monospace;
+}
 
 .copy-btn {
   padding: 4px 10px;
@@ -559,7 +595,10 @@ const submit = async () => {
   transition: all 0.2s;
   white-space: nowrap;
 }
-.copy-btn:hover { border-color: #000; }
+
+.copy-btn:hover {
+  border-color: #000;
+}
 
 .payment-steps {
   width: 100%;
@@ -591,7 +630,11 @@ const submit = async () => {
   flex-shrink: 0;
 }
 
-.payment-step a { color: #000; font-weight: 500; text-decoration: underline; }
+.payment-step a {
+  color: #000;
+  font-weight: 500;
+  text-decoration: underline;
+}
 
 .orders-link {
   font-size: 12px;
@@ -599,7 +642,10 @@ const submit = async () => {
   text-decoration: underline;
   text-underline-offset: 3px;
 }
-.orders-link:hover { color: #000; }
+
+.orders-link:hover {
+  color: #000;
+}
 
 
 @media (max-width: 768px) {
