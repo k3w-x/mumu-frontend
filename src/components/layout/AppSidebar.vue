@@ -72,6 +72,7 @@
       <div class="nav-divider"></div>
 
       <!-- Личное -->
+      <RouterLink to="/how-to-order" class="nav-link">Как заказать?</RouterLink>
       <RouterLink to="/wishlist" class="nav-link">
         Избранное
         <span v-if="wishlist.count > 0" class="nav-count">{{ wishlist.count }}</span>

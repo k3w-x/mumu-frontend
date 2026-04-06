@@ -12,6 +12,8 @@ import RegisterView from '@/views/RegisterView.vue'
 import WishlistView from '@/views/WishlistView.vue'
 import ProfileView from '@/views/ProfileView.vue'
 import BrandsView from '@/views/BrandsView.vue'
+import HowToOrderView from '@/views/HowToOrderView.vue'
+
 
 
 import AdminLayout from '@/views/admin/AdminLayout.vue'
@@ -33,6 +35,7 @@ const routes = [
   { path: '/login',        component: LoginView },
   { path: '/register',     component: RegisterView },
   { path: '/brands', component: BrandsView },
+  { path: '/how-to-order', component: HowToOrderView },
   {
     path: '/admin',
     component: AdminLayout,
