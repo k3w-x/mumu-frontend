@@ -13,7 +13,7 @@ import WishlistView from '@/views/WishlistView.vue'
 import ProfileView from '@/views/ProfileView.vue'
 import BrandsView from '@/views/BrandsView.vue'
 import HowToOrderView from '@/views/HowToOrderView.vue'
-
+import LegitCheckView from '@/views/LegitCheckView.vue'
 
 
 import AdminLayout from '@/views/admin/AdminLayout.vue'
@@ -36,6 +36,7 @@ const routes = [
   { path: '/register',     component: RegisterView },
   { path: '/brands', component: BrandsView },
   { path: '/how-to-order', component: HowToOrderView },
+  { path: '/legit-check', component: LegitCheckView },
   {
     path: '/admin',
     component: AdminLayout,
